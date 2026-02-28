@@ -57,6 +57,7 @@ class WebhookSubscriptionClient(WebhookManager):
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json'
             })
+        rich.print(response.json())
         logger.info(msg=f"created subscription for shop {self.shop_name} response : {response.json()}")
 
     def check_subscription(self) -> None | WebhookCheck:
@@ -105,25 +106,14 @@ class WebhookSubscriptionClient(WebhookManager):
         logger.info(msg=f"updated Dala shop subscription{response.json()}")
 
 
-class WebhookEnsurer:
-    def ensure_subscription(self) -> None:
-        for shop in (DALA_SHOP_NAME,CAFE_NAME,ART_AND_CRAFT_NAME):
-            shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
-            subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
-            if not subscription or subscription.status is not 'ACTIVE':
-                if not subscription:
-                    shop_webhook_client.create_subscription()
-                else:
-                    shop_webhook_client.delete_subscription()
-                    shop_webhook_client.create_subscription()
 
-class WebhookCleaner:
-    def delete_webhooks(self) -> None:
-        for shop in (DALA_SHOP_NAME,CAFE_NAME,ART_AND_CRAFT_NAME):
-            shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
-            subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
-            if not subscription or subscription.status is not 'ACTIVE':
-                if not subscription:
-                    continue
-                else:
-                    shop_webhook_client.delete_subscription()
+def delete_webhooks() -> None:
+    for shop in (DALA_SHOP_NAME,ART_AND_CRAFT_NAME):
+        shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
+        subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
+        if not subscription or subscription.status is not 'ACTIVE':
+            if not subscription:
+                logger.info(msg=f"there is not any subscription for {shop}")
+                continue
+            else:
+                shop_webhook_client.delete_subscription()

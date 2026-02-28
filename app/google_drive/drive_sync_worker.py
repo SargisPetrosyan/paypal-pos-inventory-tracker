@@ -3,7 +3,7 @@ import logging
 import time
 
 from sqlalchemy import Engine
-from app.constants import  ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, HOUR_INTERVAL_MINUTE
+from app.constants import  ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, TIME_INTERVAL_MINUTE
 from app.core.config import Database
 from app.db.schemes import InventoryUpdateRepository
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
@@ -30,7 +30,7 @@ class HourlyWorkflowRunner:
     def run(self):
         
         start_date: datetime = datetime.now()
-        end_date: datetime = start_date - timedelta(minutes=HOUR_INTERVAL_MINUTE)
+        end_date: datetime = start_date - timedelta(minutes=TIME_INTERVAL_MINUTE)
         logger.info(msg=f"check manual changes for interval start:'{start_date}', end:'{end_date}'")
 
         # start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
