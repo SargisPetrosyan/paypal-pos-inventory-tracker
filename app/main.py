@@ -44,11 +44,4 @@ async def store_inventory_data_webhook(request: Request) -> None | dict:
     webhook_handler.process_subscription(inventory_update=validated_data, database=database)
 
 
-if __name__ =="__main__":
-    uvicorn.run(
-        app="app.main:app", 
-        host="0.0.0.0", 
-        port=8000, 
-        reload=False, 
-        log_level="info")
  
