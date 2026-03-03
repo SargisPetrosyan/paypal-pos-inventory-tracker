@@ -46,14 +46,11 @@ logs/*
 *.log
 
 # Credentials & Sensitive Data (IMPORTANT - Never commit!)
-credentials.json
-token.json
-app/creds/google/credentials.json
-app/creds/google/token.json
 app/creds/*
 data/*
 core/zettle/zettle_creds
 data/single_product_data_example.py
+*.yaml
 
 .env
 .env.local
