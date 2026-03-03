@@ -2,10 +2,7 @@ from datetime import datetime
 from typing import Any
 import httpx
 from app.zettle.auth import ZettleCredentialsManager
-from dotenv import load_dotenv
 import logging
-
-load_dotenv()
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)

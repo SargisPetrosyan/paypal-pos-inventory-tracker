@@ -25,9 +25,6 @@ from app.models.google_drive import RowEditResponse
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -35,7 +32,7 @@ class EnvVariablesGetter:
 
     @staticmethod
     def get_env_variable(variable_name:str) -> str:
-        variable: str | None = os.getenv(key=variable_name)
+        variable: str | None = os.e(key=variable_name)
 
         if not variable:
             logger.critical(f"env variable by name '{variable_name}' cant be NONE ")

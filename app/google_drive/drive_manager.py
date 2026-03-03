@@ -1,13 +1,11 @@
 from app.google_drive.client import GoogleDriveClient
 import os
-from dotenv import load_dotenv
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 from typing import Any
 
-load_dotenv()
 
 ROOT_FOLDER: str | None = os.getenv(key="ROOT_FOLDER_ID")
 

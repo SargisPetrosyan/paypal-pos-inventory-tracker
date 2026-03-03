@@ -1,8 +1,3 @@
-from typing import Literal
-from dotenv import load_dotenv
-
-load_dotenv()
-
 PAGE_SIZE_FOR_LIST_FILES: int = 100
 
 # names

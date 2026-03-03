@@ -10,10 +10,6 @@ from app.models.zettle import (
     ZettleAccessToken, 
     ZettleCredentials, 
     ZettleNewAccessToken)
-from dotenv import load_dotenv
-
-load_dotenv()
-
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 

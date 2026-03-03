@@ -3,7 +3,6 @@ from typing import Any, Optional
 import gspread
 import os
 import logging
-from dotenv import load_dotenv
 
 from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError #type:ignore
@@ -13,7 +12,6 @@ from gspread.spreadsheet import Spreadsheet
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
-load_dotenv()
 
 root: str | None = os.getenv(key="ROOT_FOLDER_ID")
 

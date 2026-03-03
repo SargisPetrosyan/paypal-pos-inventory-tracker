@@ -1,10 +1,7 @@
-import time
 from typing import Any
-from dotenv import load_dotenv
 from abc import abstractmethod,ABC
 import logging
 
-from flask import request
 import httpx
 import rich
 
@@ -12,7 +9,6 @@ from app.constants import ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME
 from app.models.webhook import WebhookCheck
 from app.utils import CredentialContext
 from app.zettle.auth import ZettleCredentialsManager
-load_dotenv()
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
