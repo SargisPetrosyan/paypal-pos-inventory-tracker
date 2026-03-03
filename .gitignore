@@ -40,6 +40,9 @@ logs/*
 
 # Credentials & Sensitive Data (IMPORTANT - Never commit!)
 test_data/
+database/*
+!database/.gitkeep
+!app/creds/google/.gitkeep
 app/creds/google/*
 !app/creds/google/.gitkeep
 app/creds/zettle/*
