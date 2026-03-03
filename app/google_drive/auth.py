@@ -1,5 +1,8 @@
 import os.path
-from app.constants import DRIVE_SCOPES
+from app.constants import (
+    DRIVE_SCOPES, 
+    GOOGLE_CREDENTIALS_FILE_NAME, 
+    GOOGLE_TOKEN_FILE_NAME)
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -17,10 +20,10 @@ def get_drive_credentials() -> Credentials:
     logger.info("getting google drive credentials")
     BASE_DIR: str = os.path.dirname(os.path.abspath(path=__file__))
     CREDENTIALS_PATH: str = os.path.abspath(
-        path=os.path.join(BASE_DIR, "../../app/creds/google/credentials.json")
+        path=os.path.join(BASE_DIR, f"../../app/creds/google/{GOOGLE_CREDENTIALS_FILE_NAME}")
     )
     TOKEN_PATH: str = os.path.abspath(
-        path=os.path.join(BASE_DIR, "../../app/creds/google/token.json")
+        path=os.path.join(BASE_DIR, f"../../app/creds/google/{GOOGLE_TOKEN_FILE_NAME}")
     )
     creds: Credentials | ExternalAccountAuthorized | None = None
 

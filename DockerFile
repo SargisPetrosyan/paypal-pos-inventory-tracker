@@ -8,8 +8,6 @@ COPY . .
 
 RUN uv sync --locked
 
-VOLUME ["/app/data"]
-
 EXPOSE 8000
 
 CMD ["uv", "run", "uvicorn", "app.main:app", \

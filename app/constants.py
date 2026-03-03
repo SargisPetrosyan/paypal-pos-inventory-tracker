@@ -1,4 +1,5 @@
 from typing import Literal
+from xxlimited import Str
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -67,6 +68,12 @@ DRIVE_SCOPES: list[str] = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
 ]
+
+# file and folder names 
+GOOGLE_CREDENTIALS_FILE_NAME:str = 'google_credentials.json'
+GOOGLE_TOKEN_FILE_NAME:str = 'google_token.json'
+
+
 
 
 
