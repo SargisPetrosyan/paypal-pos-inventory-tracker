@@ -73,7 +73,7 @@ DRIVE_SCOPES: list[str] = [
 GOOGLE_CREDENTIALS_FILE_NAME:str = 'google_credentials.json'
 GOOGLE_TOKEN_FILE_NAME:str = 'google_token.json'
 
-
+SWEDEN_TIMEZONE_NAME ='Europe/Stockholm'
 
 
 

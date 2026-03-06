@@ -4,6 +4,7 @@ import logging
 from typing import Any
 from fastapi import Request
 from gspread.worksheet import JSONResponse
+import httpx
 import pytz
 from app.constants import (
     ART_CRAFT_FOLDER_ID,
@@ -11,6 +12,7 @@ from app.constants import (
     DALASHOP_FOLDER_ID,
     MONTH_PRODUCT_STOCK_IN_NAME_COL_OFFSET,
     SHOP_SUBSCRIPTION_EVENTS,
+    SWEDEN_TIMEZONE_NAME,
     WEBHOOK_ENDPOINT_NAME)
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
 from app.google_drive.drive_manager import GoogleDriveFileManager
@@ -32,18 +34,6 @@ load_dotenv()
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
-class EnvVariablesGetter:
-
-    @staticmethod
-    def get_env_variable(variable_name:str) -> str:
-        variable: str | None = os.getenv(key=variable_name)
-
-        if not variable:
-            logger.critical(f"env variable by name '{variable_name}' cant be NONE ")
-            raise TypeError(f"env variable by name '{variable_name}' cant be NONE ")
-    
-        return variable
-
 
 class FileName:
     def __init__(self, date: datetime) -> None:
@@ -60,7 +50,6 @@ class FileName:
         self.month_stock_in_and_out_col_index: int = int(self.day) + MONTH_PRODUCT_STOCK_IN_NAME_COL_OFFSET
         self.month_stock_out_row_index:int = int(self.day) + 1
         logger.info(f"file name was created 'file_name: {self.day_file_name}'")
-
 
 def sheet_exist(items: dict[str, int], sheet_name: str) -> int | None:
     for sheet, index in items.items():
@@ -98,43 +87,6 @@ class ManagersCreator:
     def spreadsheet_manager(self) -> SpreadSheetFileManager:
         return self._spreadsheet_manager
 
-
-class ZettleCredsPathManager:
-    def __init__(self,shop_name:str) -> None:      
-        BASE_DIR: str = os.path.dirname(p=os.path.abspath(path=__file__))
-        self.token_path: str = os.path.abspath(
-            path=os.path.join(BASE_DIR, f"creds/zettle/{shop_name}_access_token.json")
-        )
-
-        self.credentials_path: str = os.path.abspath(
-            path=os.path.join(BASE_DIR, f"creds/zettle/{shop_name}_credentials.json")
-        )
-
-class CredentialContext():
-    def __init__(self,shop_name:str) -> None:
-        self.name: str = shop_name
-        self._subscription_uuid: str | None = os.getenv(key=f"ZETTLE_{shop_name.upper()}_SUBSCRIPTION_UUID")
-        self._destination_url: str | None = os.getenv(key="DESTINATION_URL")
-        self._mail: str | None = os.getenv(key="MAIL")
-        self.events: list[str] = SHOP_SUBSCRIPTION_EVENTS
-
-    @property
-    def subscription_uuid(self)-> str:
-        if self._subscription_uuid is None:
-            raise TypeError(f"{self.name} subscription_uuid cant be None")
-        return self._subscription_uuid 
-    
-    @property
-    def destination_url(self)-> str:
-        if self._destination_url is None:
-            raise TypeError(f"{self.name} destination_url cant be None")
-        return self._destination_url + WEBHOOK_ENDPOINT_NAME
-    
-    @property
-    def mail(self)-> str:
-        if self._mail is None:
-            raise TypeError(f"{self.name} mail cant be None")
-        return self._mail 
     
 class DateRangeBuilder:
     def __init__(self,end_date:datetime,interval_by_hours:int) -> None:
@@ -163,12 +115,13 @@ async def json_to_dict(request:Request)-> dict:
     data["payload"] = json.loads(data["payload"])
     return data
 
-def utc_to_local(utc_dt:datetime) -> datetime:
-    return utc_dt.replace(tzinfo=timezone.utc).astimezone(tz=None)
+def any_to_cet(date:datetime) -> datetime:
+    SWEDEN_TIMEZONE: datetime = date.astimezone(pytz.timezone(SWEDEN_TIMEZONE_NAME))
+    return SWEDEN_TIMEZONE
 
 def get_folder_id_by_shop_id(shop_id:str):
-    dala_shop_organization_id: str = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_DALA_ORGANIZATION_UUID')
-    art_shop_organization_id: str = EnvVariablesGetter.get_env_variable(variable_name='ZETTLE_ART_ORGANIZATION_UUID')
+    dala_shop_organization_id: str = os.environ['ZETTLE_DALA_ORGANIZATION_UUID']
+    art_shop_organization_id: str = os.environ['ZETTLE_ART_ORGANIZATION_UUID']
     caffe_shop_organization_id = ''
 
     shop_ids: dict[str, str] = {
@@ -189,3 +142,51 @@ def extract_row_from_notation(response:RowEditResponse) -> int:
 def time_offset() -> timedelta:
     stockholm_tz = pytz.timezone('Europe/Stockholm')
     return stockholm_tz.utcoffset(datetime.now())
+
+def if_paypal_token_valid(expiration_date:datetime) -> bool:
+    if datetime.now() > expiration_date:
+        return False
+    else:
+        return True
+    
+
+class PaypalTokenData:
+    def __init__(self, shop_name: str) -> None:
+        self.shop_name: str = shop_name
+        self.key: str | None = os.getenv(f"{shop_name.upper()}_ACCESS_KEY")
+        self.expiration_date: str | None = os.getenv(f"{shop_name.upper()}_ACCESS_KEY_EXPIATION_DATE")
+
+    def get_paypal_access_token(self) -> str:
+        if not self.key or not if_paypal_token_valid(expiration_date=datetime.strptime(self.expiration_date,"%Y-%m-%d %H:%M:%S.%f")):# type:ignore
+            self._request_new_token()
+        return self.key # type:ignore
+    
+    def _request_new_token(self) -> None:
+        headers = {"Content-Type": os.environ["PAYPAL_HEADERS"]}
+        url = os.environ["PAYPAL_AUTH_URL"]
+
+        data = {
+            "grant_type": os.environ["PAYPAL_GRANT_TYPE"],
+            "client_id": os.environ[f"{self.shop_name.upper()}_CLIENT_ID"],
+            "assertion": os.environ[f"{self.shop_name.upper()}_KEY"],
+        }
+
+        response = httpx.post(url=url, data=data, headers=headers)
+        response.raise_for_status()
+
+        formatted_data = response.json()
+
+        self.expiration_date = os.environ[f"{self.shop_name.upper()}_ACCESS_KEY_EXPIATION_DATE"] = str(datetime.now() + timedelta(
+            seconds=formatted_data["expires_in"]
+        ))
+
+        self.key = os.environ[f"{self.shop_name.upper()}_ACCESS_KEY"] = formatted_data['access_token']
+
+
+class CredentialContext():
+    def __init__(self,shop_name:str) -> None:
+        self.name: str = shop_name
+        self.subscription_uuid: str  = os.environ[f"ZETTLE_{shop_name.upper()}_SUBSCRIPTION_UUID"]
+        self.destination_url: str  = os.environ["DESTINATION_URL"]
+        self.mail: str = os.environ["MAIL"]
+        self.events: list[str] = SHOP_SUBSCRIPTION_EVENTS

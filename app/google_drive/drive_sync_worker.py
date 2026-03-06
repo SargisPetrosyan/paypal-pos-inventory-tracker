@@ -13,6 +13,7 @@ from app.google_drive.drive_manager import GoogleDriveFileManager
 from app.google_drive.services import DriveFileStructureEnsurer
 from app.google_drive.sheet_manager import SpreadSheetFileManager
 from app.models.product import PaypalProductData
+from app.utils import PaypalTokenData
 from app.zettle.services import InventoryManualDataCollector
 
 
@@ -41,11 +42,16 @@ class HourlyWorkflowRunner:
         
         for name in self.shops:
             logger.info(f"check manual changes for '{name}'")
+                        
+            #token data
+            paypal_token = PaypalTokenData(shop_name=name)
+
             manual_collector = InventoryManualDataCollector(
                 start_date= start_date, 
                 end_date= end_date, 
                 repo_updater=repo_updater,
-                shop_name=name)
+                shop_name=name,
+                token_data=paypal_token)
 
             # step 1 filter changed product data
             list_of_manual_products: list[PaypalProductData] | None = manual_collector.get_manual_changed_products()
@@ -57,7 +63,7 @@ class HourlyWorkflowRunner:
             for product in list_of_manual_products:
                 time.sleep(8) #delay requests for google drive limitations
                 context =Context(product=product)
-                # step 2 check if google drive hade proper file structure
+                # step 2 check if google drive had proper file structure
                 drive_file_ensurer = DriveFileStructureEnsurer(
                     google_drive_file_manager=self.google_drive_file_manager,
                     spreadsheet_file_manager=self.spreadsheet_manager)
@@ -65,6 +71,7 @@ class HourlyWorkflowRunner:
                 drive_file_ensurer.ensure_drive_file_structure(context=context)
 
                 context.product = product
+                # step 3 process manual changes to worksheet
                 drive_file_updater = DriveSpreadsheetUpdater(context=context)
                 drive_file_updater.process_data_to_worksheet()
                 

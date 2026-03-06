@@ -1,4 +1,5 @@
 
+import os
 from typing import Any, Sequence
 from uuid import UUID
 from pydantic import ValidationError
@@ -6,11 +7,10 @@ from sqlalchemy import Engine
 from app.db.schemes import InventoryUpdateRepository
 from app.models.inventory import InventoryUpdateData,InventoryBalanceUpdateValidation, Payload
 from app.models.product import PaypalProductData,ProductData,ListOfPurchases
-from app.utils import EnvVariablesGetter, utc_to_local
 from app.zettle.data_fetchers import ProductDataFetcher, PurchasesFetcher
 from datetime import datetime, timedelta
 from app.db.models import InventoryBalanceUpdateModel
-from app.utils import time_offset
+from app.utils import PaypalTokenData, any_to_cet, time_offset
 
 import logging
 
@@ -26,7 +26,7 @@ class InventoryBalanceUpdater:
         list_of_updates:list[InventoryBalanceUpdateModel] = []
         for i in range(len(self.inventory_balance_update.payload.balanceBefore)):
             payload: Payload = self.inventory_balance_update.payload
-            local_timezone: datetime = utc_to_local(utc_dt=payload.updated.timestamp)
+            local_timezone: datetime = any_to_cet(date=payload.updated.timestamp)
             object = InventoryBalanceUpdateModel(
                 timestamp=local_timezone,
                 shop_id=payload.organizationUuid,
@@ -174,12 +174,13 @@ class InventoryManualDataCollector:
             self,repo_updater:InventoryUpdateRepository, 
             shop_name:str, 
             start_date:datetime, 
-            end_date:datetime) -> None:
+            end_date:datetime,
+            token_data:PaypalTokenData) -> None:
         
-        self.purchase_fetcher:PurchasesFetcher = PurchasesFetcher(shop_name=shop_name)
+        self.paypal_token: PaypalTokenData = token_data
+        self.purchase_fetcher:PurchasesFetcher = PurchasesFetcher(token_data=token_data)
         self.repo_updater:InventoryUpdateRepository = repo_updater
         self._purchases_joined_joined:dict[frozenset[UUID], int] = {}
-        self.variable_getter:EnvVariablesGetter = EnvVariablesGetter()
         self.shop_name: str = shop_name
         self.start_date: datetime = start_date
         self.end_date:datetime = end_date
@@ -187,10 +188,9 @@ class InventoryManualDataCollector:
 
     def get_manual_changed_products(self) -> list[PaypalProductData] | None:
         
-        logger.info('get manual changed products')
-        self.variable_getter = EnvVariablesGetter()
-        organization_id: str = str(object=UUID(hex=self.variable_getter.\
-            get_env_variable(variable_name=f"ZETTLE_{self.shop_name.upper()}_ORGANIZATION_UUID")))
+        logger.info(msg='get manual changed products')
+                
+        organization_id: str = str(object=UUID(hex=os.environ[f"ZETTLE_{self.shop_name.upper()}_ORGANIZATION_UUID"]))
 
         #fetch inventory data from database
         inventory_updates: Sequence[InventoryBalanceUpdateModel] = self.repo_updater.fetch_data_by_date_interval(
@@ -237,7 +237,7 @@ class InventoryManualDataCollector:
         manual_changes: dict[tuple[UUID,UUID], InventoryUpdateData] = inventory_manual_checker.get_manual_changes()
 
         # get product data for manual changes
-        product_data_fetcher:ProductDataFetcher = ProductDataFetcher(shop_name=self.shop_name) 
+        product_data_fetcher:ProductDataFetcher = ProductDataFetcher(token_data=self.paypal_token) 
         product_data_manual = ManualProductData(
             manual_changes=manual_changes,
             organization_id=organization_id,
