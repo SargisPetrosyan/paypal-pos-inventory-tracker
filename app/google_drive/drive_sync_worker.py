@@ -30,10 +30,10 @@ class HourlyWorkflowRunner:
 
     def run(self):
         
-        # start_date: datetime = datetime.now()
-        # end_date: datetime = start_date - timedelta(minutes=TIME_INTERVAL_MINUTE)
-        start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
-        end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
+        start_date: datetime = datetime.now()
+        end_date: datetime = start_date - timedelta(minutes=TIME_INTERVAL_MINUTE)
+        # start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
+        # end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
         logger.info(f"start checking manual changes start_date:{start_date}, end date 'end_date'")
         logger.info(msg=f"check manual changes for interval start:'{start_date}', end:'{end_date}'")
 

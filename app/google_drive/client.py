@@ -2,13 +2,14 @@ from typing import Any, Mapping, Optional
 import gspread
 import os
 import logging
+from google.oauth2.credentials import Credentials
 from dotenv import load_dotenv
 from gspread.spreadsheet import Spreadsheet
 from googleapiclient.errors import HttpError #type:ignore
 from googleapiclient.discovery import build #type:ignore
 from google.oauth2 import service_account
 
-from app.models.google_drive import GoogleCredentials
+from app.google_drive.aoth import get_drive_credentials
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -18,15 +19,12 @@ root: str | None = os.getenv(key="ROOT_FOLDER_ID")
 
 class GoogleDriveClient:
     def __init__(self) -> None:
-        google_creds = GoogleCredentials()
-        creds_info:Mapping[str,str] = google_creds.get_credentials()
-
-        SCOPES = ["https://www.googleapis.com/auth/drive"]
-
+        creds: Credentials = get_drive_credentials()
         try:
-            creds: service_account.Credentials = service_account.Credentials.from_service_account_info(info=creds_info, scopes=SCOPES)
             logger.info("creating google drive client")
-            self._client = build(serviceName="drive", version="v3", credentials=creds)
+            self._client: Any = build(
+                serviceName="drive", version="v3", credentials=creds
+            )
             logger.info("google drive client was created")
         except HttpError as error:
             logger.critical(f"Failed to build drive _client: {error}")
@@ -82,11 +80,10 @@ class GoogleDriveClient:
 
 class SpreadSheetClient:
     def __init__(self) -> None:
-        google_creds = GoogleCredentials()
-        creds: dict[str, Any] = google_creds.get_credentials()
+        credentials: Credentials = get_drive_credentials()
         try:
             logger.info("SpreadSheetClient creation")
-            self._client: gspread.Client = gspread.service_account_from_dict(info=creds)
+            self._client: gspread.Client = gspread.authorize(credentials=credentials)
             logger.info("SpreadSheetClient was create successfully")
         except HttpError as error:
             logger.critical("an occur error during creation 'SpreadSheetClient'")

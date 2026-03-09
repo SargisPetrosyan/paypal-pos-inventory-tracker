@@ -39,7 +39,7 @@ class WebhookSubscriptionClient(WebhookManager):
         self.credential_context = CredentialContext(shop_name=shop_name)
 
     def create_subscription(self) -> None:
-        access_token: str = self.creds_manager.get_paypal_access_token()
+        access_token: str = self.creds_manager._get_access_key()
         data: dict[str,Any] = {
         "uuid": self.credential_context.subscription_uuid,
         "transportName": "WEBHOOK",
@@ -59,7 +59,7 @@ class WebhookSubscriptionClient(WebhookManager):
         logger.info(msg=f"created subscription for shop {self.shop_name} response : {response.json()}")
 
     def check_subscription(self) -> None | WebhookCheck:
-        access_token: str = self.creds_manager.get_paypal_access_token()
+        access_token: str = self.creds_manager._get_access_key()
         result: httpx.Response = httpx.get(
         url='https://pusher.izettle.com/organizations/self/subscriptions',
         
@@ -76,7 +76,7 @@ class WebhookSubscriptionClient(WebhookManager):
         return validated_model
     
     def delete_subscription(self) -> None:
-        access_token: str = self.creds_manager.get_paypal_access_token()
+        access_token: str = self.creds_manager._get_access_key()
         logger.info(msg=f"deleting subscription")
         httpx.delete(
         url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}",
@@ -88,7 +88,7 @@ class WebhookSubscriptionClient(WebhookManager):
 
 
     def update_subscription(self ) -> None:
-        access_token: str = self.creds_manager.get_paypal_access_token()
+        access_token: str = self.creds_manager._get_access_key()
         data: dict[str,Any] = {
         "eventNames": self.credential_context.events,
         "destination": self.credential_context.destination_url,
