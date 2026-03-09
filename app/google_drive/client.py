@@ -76,7 +76,9 @@ class GoogleDriveClient:
         }
 
         return self._client.files().create(body=folder_metadata, fields="id").execute()
-
+    
+    def get_storage_quote(self):
+        return self._client.about().get(fields="storageQuota").execute()
 
 class SpreadSheetClient:
     def __init__(self) -> None:

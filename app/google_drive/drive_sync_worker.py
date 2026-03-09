@@ -30,24 +30,24 @@ class HourlyWorkflowRunner:
 
     def run(self):
         
-        start_date: datetime = datetime.now()
-        end_date: datetime = start_date - timedelta(minutes=TIME_INTERVAL_MINUTE)
+        # start_date: datetime = datetime.now()
+        # end_date: datetime = start_date - timedelta(minutes=TIME_INTERVAL_MINUTE)
+        start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
+        end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
+        logger.info(f"start checking manual changes start_date:{start_date}, end date 'end_date'")
         logger.info(msg=f"check manual changes for interval start:'{start_date}', end:'{end_date}'")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
         
         for name in self.shops:
             logger.info(f"check manual changes for '{name}'")
-                        
-            #token data
-            paypal_token = PaypalTokenData(shop_name=name)
 
             manual_collector = InventoryManualDataCollector(
                 start_date= start_date, 
                 end_date= end_date, 
                 repo_updater=repo_updater,
                 shop_name=name,
-                token_data=paypal_token)
+)
 
             # step 1 filter changed product data
             list_of_manual_products: list[PaypalProductData] | None = manual_collector.get_manual_changed_products()

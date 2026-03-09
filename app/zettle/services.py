@@ -174,14 +174,13 @@ class InventoryManualDataCollector:
             self,repo_updater:InventoryUpdateRepository, 
             shop_name:str, 
             start_date:datetime, 
-            end_date:datetime,
-            token_data:PaypalTokenData) -> None:
+            end_date:datetime,) -> None:
         
-        self.paypal_token: PaypalTokenData = token_data
-        self.purchase_fetcher:PurchasesFetcher = PurchasesFetcher(token_data=token_data)
+        self.shop_name: str = shop_name
+        self.paypal_token = PaypalTokenData(shop_name=self.shop_name)
+        self.purchase_fetcher:PurchasesFetcher = PurchasesFetcher(token_data=self.paypal_token)
         self.repo_updater:InventoryUpdateRepository = repo_updater
         self._purchases_joined_joined:dict[frozenset[UUID], int] = {}
-        self.shop_name: str = shop_name
         self.start_date: datetime = start_date
         self.end_date:datetime = end_date
         self.utc_offset: timedelta = time_offset()
@@ -190,7 +189,7 @@ class InventoryManualDataCollector:
         
         logger.info(msg='get manual changed products')
                 
-        organization_id: str = str(object=UUID(hex=os.environ[f"ZETTLE_{self.shop_name.upper()}_ORGANIZATION_UUID"]))
+        organization_id: str = str(object=UUID(hex=os.environ[f"{self.shop_name.upper()}_ORGANIZATION_UUID"]))
 
         #fetch inventory data from database
         inventory_updates: Sequence[InventoryBalanceUpdateModel] = self.repo_updater.fetch_data_by_date_interval(

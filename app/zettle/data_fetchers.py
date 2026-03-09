@@ -17,7 +17,7 @@ class PurchasesFetcher:
 
     def get_purchases(self,start_date:datetime, end_date:datetime, descending: bool = False) -> dict[Any,Any]:
         logger.info(msg=f'get purchases by interval')
-        token: str = self.toke_data.get_paypal_access_token()
+
         response: httpx.Response = httpx.get(
             url='https://purchase.izettle.com/purchases/v2',
             params = {
@@ -26,7 +26,7 @@ class PurchasesFetcher:
                 "descending":descending
             },
             headers={
-                'Authorization': f'Bearer {token}',
+                'Authorization': f'Bearer {self.toke_data.access_key}',
             },
         )
         response.raise_for_status()
@@ -36,11 +36,10 @@ class ProductDataFetcher:
     def __init__(self,token_data:PaypalTokenData) -> None:
         self.token_data: PaypalTokenData = token_data
     def get_product_data(self,product_uuid:str, organization_id:str)  -> dict:
-        access_token: str = self.token_data.get_paypal_access_token()
         response: httpx.Response = httpx.get(
         url=f'https://products.izettle.com/organizations/{organization_id}/products/{product_uuid}',
         headers={
-            'Authorization': f'Bearer {access_token}',
+            'Authorization': f'Bearer { self.token_data.access_key}',
         })
         response.raise_for_status()
         return response.json()

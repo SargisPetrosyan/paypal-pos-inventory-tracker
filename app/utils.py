@@ -151,24 +151,18 @@ def if_paypal_token_valid(expiration_date:datetime) -> bool:
     
 
 class PaypalTokenData:
-    def __init__(self, shop_name: str) -> None:
-        self.shop_name: str = shop_name
-        self.key: str | None = os.getenv(f"{shop_name.upper()}_ACCESS_KEY")
-        self.expiration_date: str | None = os.getenv(f"{shop_name.upper()}_ACCESS_KEY_EXPIATION_DATE")
+    def __init__(self, shop_name: str) :
+        self.shop_name: str  = shop_name
+        self.access_key: str = self._get_access_key()
+    def _get_access_key(self)-> str:
 
-    def get_paypal_access_token(self) -> str:
-        if not self.key or not if_paypal_token_valid(expiration_date=datetime.strptime(self.expiration_date,"%Y-%m-%d %H:%M:%S.%f")):# type:ignore
-            self._request_new_token()
-        return self.key # type:ignore
-    
-    def _request_new_token(self) -> None:
-        headers = {"Content-Type": os.environ["PAYPAL_HEADERS"]}
-        url = os.environ["PAYPAL_AUTH_URL"]
+        headers: dict[str, str] = {"Content-Type": os.environ["PAYPAL_HEADERS"]}
+        url: str = os.environ["PAYPAL_AUTH_URL"]
 
-        data = {
+        data: dict[str, str] = {
             "grant_type": os.environ["PAYPAL_GRANT_TYPE"],
-            "client_id": os.environ[f"{self.shop_name.upper()}_CLIENT_ID"],
-            "assertion": os.environ[f"{self.shop_name.upper()}_KEY"],
+            "client_id": os.environ[f"{ self.shop_name.upper()}_CLIENT_ID"],
+            "assertion": os.environ[f"{ self.shop_name.upper()}_KEY"],
         }
 
         response = httpx.post(url=url, data=data, headers=headers)
@@ -176,12 +170,11 @@ class PaypalTokenData:
 
         formatted_data = response.json()
 
-        self.expiration_date = os.environ[f"{self.shop_name.upper()}_ACCESS_KEY_EXPIATION_DATE"] = str(datetime.now() + timedelta(
+        self.expiration_date = os.environ[f"{ self.shop_name.upper()}_ACCESS_KEY_EXPIATION_DATE"] = str(datetime.now() + timedelta(
             seconds=formatted_data["expires_in"]
         ))
 
-        self.key = os.environ[f"{self.shop_name.upper()}_ACCESS_KEY"] = formatted_data['access_token']
-
+        return formatted_data['access_token']
 
 class CredentialContext():
     def __init__(self,shop_name:str) -> None:
