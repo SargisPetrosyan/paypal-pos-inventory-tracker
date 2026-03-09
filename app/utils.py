@@ -8,7 +8,7 @@ import httpx
 import pytz
 from app.constants import (
     ART_CRAFT_FOLDER_ID,
-    CAFFE_FOLDER_ID,
+    CAFE_FOLDER_ID,
     DALASHOP_FOLDER_ID,
     MONTH_PRODUCT_STOCK_IN_NAME_COL_OFFSET,
     SHOP_SUBSCRIPTION_EVENTS,
@@ -98,9 +98,9 @@ class DateRangeBuilder:
 class OrganizationsNameMappedId:
     def __init__(self) -> None:
         self.organizations: dict[str | None, str] = {
-            os.getenv("ZETTLE_ART_ORGANIZATION_UUID"):ART_AND_CRAFT_NAME,
-            os.getenv("ZETTLE_DALA_ORGANIZATION_UUID"):DALA_SHOP_NAME,
-            os.getenv("ZETTLE_CAFE_ORGANIZATION_UUID"):CAFE_NAME,
+            os.getenv("ART_ORGANIZATION_UUID"):ART_AND_CRAFT_NAME,
+            os.getenv("DALA_ORGANIZATION_UUID"):DALA_SHOP_NAME,
+            os.getenv("CAFE_ORGANIZATION_UUID"):CAFE_NAME,
         } 
 
     def get_name_by_id(self,shop_id:str) -> str:
@@ -120,14 +120,14 @@ def any_to_cet(date:datetime) -> datetime:
     return SWEDEN_TIMEZONE
 
 def get_folder_id_by_shop_id(shop_id:str):
-    dala_shop_organization_id: str = os.environ['ZETTLE_DALA_ORGANIZATION_UUID']
-    art_shop_organization_id: str = os.environ['ZETTLE_ART_ORGANIZATION_UUID']
-    caffe_shop_organization_id = ''
+    dala_shop_organization_id: str = os.environ['DALA_ORGANIZATION_UUID']
+    art_shop_organization_id: str = os.environ['ART_ORGANIZATION_UUID']
+    cafe_shop_organization_id = ''
 
     shop_ids: dict[str, str] = {
         dala_shop_organization_id:DALASHOP_FOLDER_ID,
         art_shop_organization_id:ART_CRAFT_FOLDER_ID,
-        caffe_shop_organization_id:CAFFE_FOLDER_ID,
+        cafe_shop_organization_id:CAFE_FOLDER_ID,
     }
 
     return shop_ids[shop_id]
@@ -186,7 +186,7 @@ class PaypalTokenData:
 class CredentialContext():
     def __init__(self,shop_name:str) -> None:
         self.name: str = shop_name
-        self.subscription_uuid: str  = os.environ[f"ZETTLE_{shop_name.upper()}_SUBSCRIPTION_UUID"]
-        self.destination_url: str  = os.environ["DESTINATION_URL"]
+        self.subscription_uuid: str  = os.environ[f"{shop_name.upper()}_SUBSCRIPTION_UUID"]
+        self.destination_url: str  = os.environ["DESTINATION_URL"] + "/inventory_tracker_webhook"
         self.mail: str = os.environ["MAIL"]
         self.events: list[str] = SHOP_SUBSCRIPTION_EVENTS

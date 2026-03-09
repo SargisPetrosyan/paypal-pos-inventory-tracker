@@ -31,7 +31,7 @@ async def lifespan(app:FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.post(path="/store_inventory_data_webhook")
+@app.post(path="/inventory_tracker_webhook")
 async def store_inventory_data_webhook(request: Request) -> None | dict:
     data:dict = await request.json() 
     if data["eventName"] == "TestMessage": # need to change 

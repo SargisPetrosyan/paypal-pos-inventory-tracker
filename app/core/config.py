@@ -7,5 +7,5 @@ load_dotenv()
 
 class Database:
     def __init__(self) -> None:
-        self.engine: Engine = create_engine(url="sqlite:///data/database.db")
+        self.engine: Engine = create_engine(url="sqlite:///database/database.db")
         SQLModel.metadata.create_all(bind=self.engine)

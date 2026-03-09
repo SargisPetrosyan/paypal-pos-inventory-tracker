@@ -1,3 +1,4 @@
+from hmac import new
 from typing import Any
 from dotenv import load_dotenv
 from abc import abstractmethod,ABC
@@ -6,7 +7,7 @@ import logging
 import httpx
 import rich
 
-from app.constants import ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME
+from app.constants import ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, SHOPS
 from app.models.webhook import WebhookCheck
 from app.utils import CredentialContext, PaypalTokenData
 load_dotenv()
@@ -48,23 +49,25 @@ class WebhookSubscriptionClient(WebhookManager):
         }
         logger.info(msg="creating subscription")
         response: httpx.Response = httpx.post(
-            url='https://pusher.izettle.com/organizations/self/subscriptions/',
+            url='https://pusher.izettle.com/organizations/self/subscriptions',
             json=data,
             headers={
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json'
             })
-        rich.print(response.json())
+        response.raise_for_status()
         logger.info(msg=f"created subscription for shop {self.shop_name} response : {response.json()}")
 
     def check_subscription(self) -> None | WebhookCheck:
         access_token: str = self.creds_manager.get_paypal_access_token()
         result: httpx.Response = httpx.get(
         url='https://pusher.izettle.com/organizations/self/subscriptions',
+        
         headers={
             'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
         })
+        result.raise_for_status()
         converted: list[dict[str,str]] | None = result.json()
         logger.info(msg=f"subscriptions for {self.shop_name} count:{len(result.json())} data: {result.json()}")
         if not converted:
@@ -76,7 +79,7 @@ class WebhookSubscriptionClient(WebhookManager):
         access_token: str = self.creds_manager.get_paypal_access_token()
         logger.info(msg=f"deleting subscription")
         httpx.delete(
-        url=f'https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}',
+        url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}",
         headers={
             'Authorization': f'Bearer {access_token}',
             'Content-Type': 'application/json'
@@ -102,10 +105,8 @@ class WebhookSubscriptionClient(WebhookManager):
 
         logger.info(msg=f"updated Dala shop subscription{response.json()}")
 
-
-
 def delete_webhooks() -> None:
-    for shop in (DALA_SHOP_NAME,ART_AND_CRAFT_NAME):
+    for shop in SHOPS:
         shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
         subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
         if not subscription or subscription.status is not 'ACTIVE':

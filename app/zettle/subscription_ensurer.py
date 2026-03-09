@@ -1,5 +1,5 @@
 
-from app.constants import ART_AND_CRAFT_NAME, DALA_SHOP_NAME
+from app.constants import ART_AND_CRAFT_NAME, DALA_SHOP_NAME, SHOPS
 from app.models.webhook import WebhookCheck
 from app.zettle.webhook_manager import WebhookSubscriptionClient
 import logging
@@ -7,7 +7,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 
 
 
-for shop in (DALA_SHOP_NAME,ART_AND_CRAFT_NAME):
+for shop in SHOPS:
     logger.info(f"ensure subscription for shop '{shop}'")
     shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
     subscription: None | WebhookCheck = shop_webhook_client.check_subscription()

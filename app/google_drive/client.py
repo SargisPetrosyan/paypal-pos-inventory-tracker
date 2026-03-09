@@ -8,23 +8,7 @@ from googleapiclient.errors import HttpError #type:ignore
 from googleapiclient.discovery import build #type:ignore
 from google.oauth2 import service_account
 
-
-class GoogleCredentials:
-    def __init__(self) -> None:
-        self.type:str = "service_account"
-        self.project_id = "decent-carving-489308-g3"
-        self.private_key_id: str = os.environ['GOOGLE_PRIVATE_KEY_ID']
-        self.private_key: str = os.environ['GOOGLE_PRIVATE_KEY']
-        self.client_email: str = os.environ['GOOGLE_CLIENT_EMAIL']
-        self.client_id: str = os.environ['GOOGLE_CLIENT_ID']
-        self.auth_uri="https://accounts.google.com/o/oauth2/auth"
-        self.token_uri="https://oauth2.googleapis.com/token"
-        self.auth_provider_x509_cert_url: str="https://www.googleapis.com/oauth2/v1/certs"
-        self.client_x509_cert_url: str=os.environ['CLIENT_X509_CERT_URL']
-        self.universe_domain:str = "googleapis.com"
-    
-    def get_credentials(self)  -> dict[str, Any]:
-        return self.__dict__
+from app.models.google_drive import GoogleCredentials
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 

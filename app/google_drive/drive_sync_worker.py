@@ -3,7 +3,7 @@ import logging
 import time
 
 from sqlalchemy import Engine
-from app.constants import  ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, TIME_INTERVAL_MINUTE
+from app.constants import  ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, SHOPS, TIME_INTERVAL_MINUTE
 from app.core.config import Database
 from app.db.schemes import InventoryUpdateRepository
 from app.google_drive.client import GoogleDriveClient, SpreadSheetClient
@@ -22,7 +22,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class HourlyWorkflowRunner:
     def __init__(self,database:Database) -> None:
         self.engine: Engine = database.engine
-        self.shops: tuple[str, str, str]= (DALA_SHOP_NAME,ART_AND_CRAFT_NAME,CAFE_NAME)
+        self.shops: tuple[str, str, str]= SHOPS
         self.google_drive_client = GoogleDriveClient()
         self.spreadsheet_file_client = SpreadSheetClient()
         self.google_drive_file_manager = GoogleDriveFileManager(client=self.google_drive_client)
@@ -33,10 +33,6 @@ class HourlyWorkflowRunner:
         start_date: datetime = datetime.now()
         end_date: datetime = start_date - timedelta(minutes=TIME_INTERVAL_MINUTE)
         logger.info(msg=f"check manual changes for interval start:'{start_date}', end:'{end_date}'")
-
-        # start_date: datetime = datetime.strptime("2026-01-13 12:36:22","%Y-%m-%d %H:%M:%S") #temporary
-        # end_date: datetime = datetime.strptime("2026-01-13 16:00:00","%Y-%m-%d %H:%M:%S")
-        # logger.info(f"start checking manual changes start_date:{start_date}, end date 'end_date'")
 
         repo_updater: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.engine)
         
