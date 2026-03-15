@@ -26,7 +26,6 @@ async def lifespan(app:FastAPI):
     scheduler.add_job(func=spreadsheet_updater.run,trigger="interval",minutes = TIME_INTERVAL_MINUTE)
     scheduler.start()
     yield
-    delete_webhooks()
     scheduler.shutdown()
 
 app = FastAPI(lifespan=lifespan)

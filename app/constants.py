@@ -77,5 +77,8 @@ GOOGLE_TOKEN_FILE_NAME:str = 'google_token.json'
 SWEDEN_TIMEZONE_NAME ='Europe/Stockholm'
 
 
+PAYPAL_GRANT_TYPE="urn:ietf:params:oauth:grant-type:jwt-bearer"
+PAYPAL_AUTH_URL= "https://oauth.zettle.com/token"
+PAYPAL_HEADERS= "application/x-www-form-urlencoded"
 
 

@@ -8,7 +8,7 @@ import logging
 
 def setup_logger() -> None:
     logging.basicConfig(
-        # filename="app/langgraph/logs/app_logs.log",
+        filename="logs/app_logs.log",
         format="%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s",
         filemode="w",
         force=True,

@@ -11,6 +11,9 @@ from app.constants import (
     CAFE_FOLDER_ID,
     DALASHOP_FOLDER_ID,
     MONTH_PRODUCT_STOCK_IN_NAME_COL_OFFSET,
+    PAYPAL_AUTH_URL,
+    PAYPAL_GRANT_TYPE,
+    PAYPAL_HEADERS,
     SHOP_SUBSCRIPTION_EVENTS,
     SWEDEN_TIMEZONE_NAME,
     WEBHOOK_ENDPOINT_NAME)
@@ -156,11 +159,11 @@ class PaypalTokenData:
         self.access_key: str = self._get_access_key()
     def _get_access_key(self)-> str:
 
-        headers: dict[str, str] = {"Content-Type": os.environ["PAYPAL_HEADERS"]}
-        url: str = os.environ["PAYPAL_AUTH_URL"]
+        headers: dict[str, str] = {"Content-Type": PAYPAL_HEADERS}
+        url: str = PAYPAL_AUTH_URL
 
         data: dict[str, str] = {
-            "grant_type": os.environ["PAYPAL_GRANT_TYPE"],
+            "grant_type": PAYPAL_GRANT_TYPE,
             "client_id": os.environ[f"{ self.shop_name.upper()}_CLIENT_ID"],
             "assertion": os.environ[f"{ self.shop_name.upper()}_KEY"],
         }

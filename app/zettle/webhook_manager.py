@@ -54,7 +54,8 @@ class WebhookSubscriptionClient(WebhookManager):
             headers={
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json'
-            })
+            },
+            timeout=15)
         response.raise_for_status()
         logger.info(msg=f"created subscription for shop {self.shop_name} response : {response.json()}")
 
