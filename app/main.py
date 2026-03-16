@@ -1,34 +1,19 @@
 from fastapi import FastAPI, Request
 import logging
 
-import uvicorn
-from app.constants import TIME_INTERVAL_MINUTE
-from app.google_drive.drive_sync_worker import HourlyWorkflowRunner
 from app.utils import json_to_dict
 from app.models.inventory import InventoryBalanceUpdateValidation
-from contextlib import asynccontextmanager
 from app.core.logging import setup_logger
 from app.core.config import Database
-from app.zettle.webhook_handler import SubscriptionHandler
-from apscheduler.schedulers.background import BackgroundScheduler
-from app.zettle.webhook_manager import delete_webhooks
+from app.webhook_handler import SubscriptionHandler
 
 setup_logger()
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 database: Database = Database()
 webhook_handler = SubscriptionHandler()
-spreadsheet_updater = HourlyWorkflowRunner(database=database)
 
-@asynccontextmanager
-async def lifespan(app:FastAPI):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=spreadsheet_updater.run,trigger="interval",minutes = TIME_INTERVAL_MINUTE)
-    scheduler.start()
-    yield
-    scheduler.shutdown()
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 @app.post(path="/inventory_tracker_webhook")
 async def store_inventory_data_webhook(request: Request) -> None | dict:

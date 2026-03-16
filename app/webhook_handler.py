@@ -1,4 +1,4 @@
-from app.zettle.services import InventoryBalanceUpdater
+from app.services import InventoryBalanceUpdater
 from app.models.inventory import InventoryBalanceUpdateValidation
 from app.core.config import Database
 

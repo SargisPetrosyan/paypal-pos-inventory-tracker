@@ -5,9 +5,8 @@ from abc import abstractmethod,ABC
 import logging
 
 import httpx
-import rich
 
-from app.constants import ART_AND_CRAFT_NAME, CAFE_NAME, DALA_SHOP_NAME, SHOPS
+from app.constants import SHOPS
 from app.models.webhook import WebhookCheck
 from app.utils import CredentialContext, PaypalTokenData
 load_dotenv()
@@ -116,3 +115,17 @@ def delete_webhooks() -> None:
                 continue
             else:
                 shop_webhook_client.delete_subscription()
+
+def ensure_subscriptions():
+    for shop in SHOPS:
+        logger.info(f"ensure subscription for shop '{shop}'")
+        shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
+        subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
+        if not subscription or subscription.status != 'ACTIVE':
+            if not subscription:
+                logger.info(f"subscription is '{subscription}' for shop '{shop}'")
+                shop_webhook_client.create_subscription()
+            else:
+                logger.info(f"subscription is '{subscription} for shop '{shop}'")
+                shop_webhook_client.delete_subscription()
+                shop_webhook_client.create_subscription()
