@@ -41,7 +41,6 @@ To view logs and attach to your running container instance, run:
             --environment MyContainerappEnv \
             --yaml "path/to/yaml/file.yml"
 ```
-
 ---
 
 **Note:**
@@ -50,8 +49,11 @@ To view logs and attach to your running container instance, run:
 
 docker build --platform linux/amd64 -t sargispetrosyan/paypal-inventory-tracker .
 
-
+```bash
 az containerapp show -n paypal-container -g paypal -o yaml > app.yaml
+```
 
+```bash
 az containerapp update --name paypal-container --resource-group paypal  \
     --yaml app.yaml
+```
