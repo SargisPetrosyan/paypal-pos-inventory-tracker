@@ -2,6 +2,7 @@ test_data/
 .env
 *.yaml
 app/creds/google/credentials.json
+test.py
 
 # Python cache
 __pycache__/

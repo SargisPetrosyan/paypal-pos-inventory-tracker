@@ -29,7 +29,7 @@ class InventoryBalanceUpdater:
                 after=payload.balanceAfter[i].balance,
             )
             list_of_updates.append(object) 
-
+        logger .info("")
         inventory_update: InventoryUpdateRepository = InventoryUpdateRepository(engine=self.database.engine)
         inventory_update.store_updated_inventory_data(inventory_update=list_of_updates)
 

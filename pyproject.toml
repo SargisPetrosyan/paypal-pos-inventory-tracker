@@ -1,5 +1,5 @@
 [project]
-name = "zettleinventorytracker"
+name = "zettle-webhook-data-register"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
