@@ -44,3 +44,6 @@ class InventoryUpdateData():
     stock:int
     updated_value:int
     timestamp:datetime
+
+class Test_request(BaseModel):
+    text: str

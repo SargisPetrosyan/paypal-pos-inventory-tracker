@@ -65,3 +65,14 @@ class CredentialContext():
         self.destination_url: str  = os.environ["DESTINATION_URL"] + "/inventory_tracker_webhook"
         self.mail: str = os.environ["MAIL"]
         self.events: list[str] = SHOP_SUBSCRIPTION_EVENTS
+
+class RequestIdempotency:
+    def __init__(self) -> None:
+        self.data:set = set()
+    
+    def if_idempotent(self,request:dict):
+        message_uniqueid:str = request["messageUuid"]
+        if message_uniqueid not in self.data:
+            self.data.add(message_uniqueid)
+            return False
+        return True
