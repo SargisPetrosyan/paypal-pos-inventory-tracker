@@ -14,4 +14,5 @@ class  InventoryUpdateRepository():
             for i in inventory_update:
                 session.add(instance=i)
             session.commit()
+            logger.info(f"products count: '{len(inventory_update)}' was stored in database")
     

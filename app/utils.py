@@ -71,8 +71,10 @@ class RequestIdempotency:
         self.data:set = set()
     
     def if_idempotent(self,request:dict):
+        logger.info("check request idempotency")
         message_uniqueid:str = request["messageUuid"]
         if message_uniqueid not in self.data:
             self.data.add(message_uniqueid)
             return False
+        logger.warning("this request was not be processes because of idempotency")
         return True

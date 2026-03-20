@@ -9,7 +9,6 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class SubscriptionHandler:
     def process_subscription(self,inventory_update:InventoryBalanceUpdateValidation,database:Database,idempotent:bool) -> None:
         if idempotent:
-            logger.warning('request is idempotent')
             return
         inventory_balance_updater =  InventoryBalanceUpdater(inventory_balance_update=inventory_update, engine=database.engine)
         logger.info(msg="request was validated successfully!")

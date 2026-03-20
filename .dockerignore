@@ -8,6 +8,10 @@ test.py
 __pycache__/
 *.py[cod]
 *$py.class
+.mypy_cache/
+.ruff_cache
+pyproject.toml
+uv.lock
 
 # Virtual environments
 venv/

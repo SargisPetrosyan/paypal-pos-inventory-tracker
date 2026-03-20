@@ -23,7 +23,6 @@ async def store_inventory_data_webhook(request: Request, backend_task: Backgroun
         logger.info("request for set subscription")
         return {"status":"200"}
     parsed_data:dict = await json_to_dict(request=request) # need to change 
-    logger.info("check request idempotency")
     validated_data: InventoryBalanceUpdateValidation = InventoryBalanceUpdateValidation.model_validate(obj=parsed_data)
     logger.info("request was validated successfully")
     result: bool = request_idempotency.if_idempotent(request=data)
@@ -32,6 +31,7 @@ async def store_inventory_data_webhook(request: Request, backend_task: Backgroun
         inventory_update=validated_data, 
         database=database, 
         idempotent=result)
+    
 
 
     
