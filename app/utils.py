@@ -53,10 +53,6 @@ def any_to_cet(date:datetime) -> datetime:
     SWEDEN_TIMEZONE: datetime = date.astimezone(pytz.timezone(SWEDEN_TIMEZONE_NAME))
     return SWEDEN_TIMEZONE
 
-def time_offset() -> timedelta:
-    stockholm_tz = pytz.timezone('Europe/Stockholm')
-    return stockholm_tz.utcoffset(datetime.now())
-
 
 class CredentialContext():
     def __init__(self,shop_name:str) -> None:
