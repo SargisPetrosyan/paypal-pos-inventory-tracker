@@ -1,6 +1,5 @@
 from hmac import new
 from typing import Any
-from dotenv import load_dotenv
 from abc import abstractmethod,ABC
 import logging
 
@@ -9,7 +8,6 @@ import httpx
 from app.constants import SHOPS
 from app.models.webhook import WebhookCheck
 from app.utils import CredentialContext, PaypalTokenData
-load_dotenv()
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 

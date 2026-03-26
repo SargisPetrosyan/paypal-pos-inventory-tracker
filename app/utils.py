@@ -11,9 +11,6 @@ from app.constants import PAYPAL_AUTH_URL, PAYPAL_GRANT_TYPE, PAYPAL_HEADERS, SH
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
