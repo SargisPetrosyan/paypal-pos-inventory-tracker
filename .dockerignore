@@ -42,7 +42,7 @@ Thumbs.db
 .env
 
 # Tests (optional)
-tests/
+app/tests/
 
 # Docker
 docker-compose.yml
