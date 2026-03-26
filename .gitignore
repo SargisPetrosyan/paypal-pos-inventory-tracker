@@ -5,11 +5,9 @@ __pycache__/
 *.so
 build/
 dist/
-wheels/
 *.egg-info/
 *.egg
 *.db
-MANIFEST
 
 # Testing & Coverage
 .pytest_cache/
@@ -17,8 +15,6 @@ MANIFEST
 .coverage
 .coverage.*
 htmlcov/
-.tox/
-.nox/
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -26,12 +22,9 @@ htmlcov/
 
 # Virtual environments
 .venv
-test_data/
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
 # IDE & Editor
 .vscode/
@@ -46,19 +39,19 @@ logs/*
 *.log
 
 # Credentials & Sensitive Data (IMPORTANT - Never commit!)
-credentials.json
-token.json
-app/creds/google/credentials.json
-app/creds/google/token.json
-app/creds/*
-data/*
-core/zettle/zettle_creds
-data/single_product_data_example.py
-
+test_data/
+database/*
+!database/.gitkeep
+!app/creds/google/.gitkeep
+app/creds/google/*
+!app/creds/google/.gitkeep
+app/creds/zettle/*
+!app/creds/zettle/.gitkeep
 .env
 .env.local
+*.yaml
 
 # Data files (local/temporary)
-InventoryBalanceChanged.json
-Product.json
+data/
 test.py
+*.md

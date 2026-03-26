@@ -1,0 +1,49 @@
+test_data/
+.env
+*.yaml
+app/creds/google/credentials.json
+test.py
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+.ruff_cache
+pyproject.toml
+uv.lock
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Logs
+logs/
+
+# Database files
+*.sqlite3
+*.db
+
+# Git
+.git
+.gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment variables
+.env
+
+# Tests (optional)
+app/tests/
+
+# Docker
+docker-compose.yml
+dockerfile
