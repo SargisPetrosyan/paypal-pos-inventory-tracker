@@ -25,7 +25,7 @@ async def store_inventory_data_webhook(request: Request, backend_task: Backgroun
         return {"status":"200"}
     parsed_data:dict = await json_to_dict(request=request) # need to change 
     validated_data: InventoryBalanceUpdateValidation = InventoryBalanceUpdateValidation.model_validate(obj=parsed_data)
-    logger.info(f"request from {shop_info.get_shop_name_by_id(validated_data.organizationUuid)} was validated successfully")
+    logger.info(f"request from {shop_info.get_shop_name_by_id(shop_id=validated_data.organizationUuid)} was validated successfully")
     backend_task.add_task(
         func=webhook_handler.process_subscription,
         inventory_update=validated_data, 
