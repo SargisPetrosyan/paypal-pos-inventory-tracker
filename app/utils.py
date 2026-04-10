@@ -1,6 +1,7 @@
 from datetime import  datetime, timedelta
 import json
 import logging
+from uuid import UUID
 from fastapi import Request
 import httpx
 
@@ -71,3 +72,13 @@ class RequestIdempotency:
             return False
         logger.warning("this request was not be processes because of idempotency")
         return True
+
+class ShopInfo:
+    def __init__(self) -> None:
+        self.dict = {
+            UUID(os.environ['DALA_ORGANIZATION_UUID']): f'DALA_SHOP',
+            UUID(os.environ['ART_SUBSCRIPTION_UUID']): f'ART_CRAFT',
+            UUID(os.environ['CAFE_ORGANIZATION_UUID']): f'CAFE',
+        }
+    def get_shop_name_by_id(self,shop_id:UUID):
+        return self.dict[shop_id]
