@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, BackgroundTasks
 import logging
-
+from pydantic import ValidationError
 from app.utils import  RequestIdempotency, ShopInfo, json_to_dict
 from app.models.inventory import InventoryBalanceUpdateValidation, Test_request
 from app.core.logging import setup_logger
@@ -24,8 +24,9 @@ async def store_inventory_data_webhook(request: Request, backend_task: Backgroun
         logger.info("request for set subscription")
         return {"status":"200"}
     parsed_data:dict = await json_to_dict(request=request) # need to change 
+    logger.info("new request")
     validated_data: InventoryBalanceUpdateValidation = InventoryBalanceUpdateValidation.model_validate(obj=parsed_data)
-    logger.info(f"request from {shop_info.get_shop_name_by_id(shop_id=validated_data.organizationUuid)} was validated successfully")
+    logger.info(f"request was validated successfully")
     backend_task.add_task(
         func=webhook_handler.process_subscription,
         inventory_update=validated_data, 
