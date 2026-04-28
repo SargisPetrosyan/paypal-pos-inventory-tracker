@@ -6,12 +6,14 @@ from app.models.inventory import InventoryBalanceUpdateValidation, Test_request
 from app.core.logging import setup_logger
 from app.core.config import Database
 from app.webhook_handler import SubscriptionHandler
-
+import datetime
 setup_logger()
 shop_info = ShopInfo()
 logger: logging.Logger = logging.getLogger(name=__name__)
 
-database: Database = Database()
+utc_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+
+database: Database = Database(time=utc_time)
 webhook_handler = SubscriptionHandler()
 request_idempotency = RequestIdempotency()
 
@@ -24,7 +26,6 @@ async def store_inventory_data_webhook(request: Request, backend_task: Backgroun
         logger.info("request for set subscription")
         return {"status":"200"}
     parsed_data:dict = await json_to_dict(request=request) # need to change 
-    logger.info("new request")
     validated_data: InventoryBalanceUpdateValidation = InventoryBalanceUpdateValidation.model_validate(obj=parsed_data)
     logger.info(f"request was validated successfully")
     backend_task.add_task(
