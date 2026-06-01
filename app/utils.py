@@ -82,3 +82,14 @@ class ShopInfo:
         }
     def get_shop_name_by_id(self,shop_id:UUID):
         return self.dict[shop_id]
+    
+class RequestIdempotency:
+    def __init__(self) -> None:
+        self.data:set = set()
+    
+    def if_idempotent(self,request:dict):
+        message_uniqueid:str = request["messageUuid"]
+        if message_uniqueid not in self.data:
+            self.data.add(message_uniqueid)
+            return False
+        return True
