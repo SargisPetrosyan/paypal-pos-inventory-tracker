@@ -60,7 +60,7 @@ class CredentialContext():
         self.mail: str = os.environ["MAIL"]
         self.events: list[str] = SHOP_SUBSCRIPTION_EVENTS
 
-class RequestIdempotency:
+class RequestIdempotencyV1:
     def __init__(self) -> None:
         self.data:set = set()
     

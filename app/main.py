@@ -1,8 +1,7 @@
 from fastapi import FastAPI, Request, BackgroundTasks
 import logging
-from pydantic import ValidationError
 from app.utils import  RequestIdempotency, ShopInfo, json_to_dict
-from app.models.inventory import InventoryBalanceUpdateValidation, Test_request
+from app.models.inventory import InventoryBalanceUpdateValidation
 from app.core.logging import setup_logger
 from app.core.config import Database
 from app.webhook_handler import SubscriptionHandler
@@ -11,9 +10,6 @@ setup_logger()
 shop_info = ShopInfo()
 logger: logging.Logger = logging.getLogger(name=__name__)
 
-utc_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
-
-database: Database = Database(time=utc_time)
 webhook_handler = SubscriptionHandler()
 request_idempotency = RequestIdempotency()
 
@@ -25,6 +21,10 @@ async def store_inventory_data_webhook(request: Request, backend_task: Backgroun
     if data["eventName"] == "TestMessage": # need to change 
         logger.info("request for set subscription")
         return {"status":"200"}
+    
+    utc_time: datetime.datetime = datetime.datetime.now(tz=datetime.timezone.utc)
+    database: Database = Database(time=utc_time)
+
     parsed_data:dict = await json_to_dict(request=request) # need to change 
     validated_data: InventoryBalanceUpdateValidation = InventoryBalanceUpdateValidation.model_validate(obj=parsed_data)
     logger.info(f"request was validated successfully")
