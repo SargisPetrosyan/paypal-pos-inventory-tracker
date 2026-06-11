@@ -8,7 +8,11 @@ import httpx
 import pytz
 from datetime import datetime
 
+from sqlalchemy import Engine
+
 from app.constants import PAYPAL_AUTH_URL, PAYPAL_GRANT_TYPE, PAYPAL_HEADERS, SHOP_SUBSCRIPTION_EVENTS, SWEDEN_TIMEZONE_NAME
+from app.db.schemes import InventoryUpdateRepository
+from app.models.inventory import InventoryBalanceUpdateValidation
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 import os
@@ -60,18 +64,6 @@ class CredentialContext():
         self.mail: str = os.environ["MAIL"]
         self.events: list[str] = SHOP_SUBSCRIPTION_EVENTS
 
-class RequestIdempotencyV1:
-    def __init__(self) -> None:
-        self.data:set = set()
-    
-    def if_idempotent(self,request:dict):
-        logger.info("check request idempotency")
-        message_uniqueid:str = request["messageUuid"]
-        if message_uniqueid not in self.data:
-            self.data.add(message_uniqueid)
-            return False
-        logger.warning("this request was not be processes because of idempotency")
-        return True
 
 class ShopInfo:
     def __init__(self) -> None:
@@ -83,13 +75,3 @@ class ShopInfo:
     def get_shop_name_by_id(self,shop_id:UUID):
         return self.dict[shop_id]
     
-class RequestIdempotency:
-    def __init__(self) -> None:
-        self.data:set = set()
-    
-    def if_idempotent(self,request:dict):
-        message_uniqueid:str = request["messageUuid"]
-        if message_uniqueid not in self.data:
-            self.data.add(message_uniqueid)
-            return False
-        return True

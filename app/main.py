@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, BackgroundTasks
 import logging
-from app.utils import  RequestIdempotency, ShopInfo, json_to_dict
+from app.utils import  ShopInfo, json_to_dict
 from app.models.inventory import InventoryBalanceUpdateValidation
 from app.core.logging import setup_logger
 from app.core.config import Database
@@ -11,8 +11,6 @@ shop_info = ShopInfo()
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 webhook_handler = SubscriptionHandler()
-request_idempotency = RequestIdempotency()
-
 app = FastAPI()
 
 @app.post(path="/inventory_tracker_webhook")
