@@ -48,7 +48,15 @@ class PaypalTokenData:
 async def json_to_dict(request:Request)-> dict:
     body: bytes = await request.body()
     data = json.loads(body)
-    data["payload"] = json.loads(data["payload"])
+    payload = data.get("payload")
+    if isinstance(payload, str):
+        try:
+            data["payload"] = json.loads(payload)
+        except json.JSONDecodeError:
+            logger.warning("Webhook payload is string but contains invalid JSON. Keeping raw string payload.")
+            data["payload"] = payload
+    else:
+        data["payload"] = payload
     return data
 
 def any_to_cet(date:datetime) -> datetime:
