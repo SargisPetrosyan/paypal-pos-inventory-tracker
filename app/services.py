@@ -35,11 +35,7 @@ class InventoryBalanceUpdater:
             )
 
             if len(product) > 0:
-                logger.warning(f"""
-                product by id {payload.balanceBefore[i].productUuid}, 
-                and variant id{payload.balanceBefore[i].variantUuid} by 
-                timestamp {local_timezone} already exist in database
-                """)
+                logger.debug(f"Duplicate: product {payload.balanceBefore[i].productUuid}, variant {payload.balanceBefore[i].variantUuid}")
                 continue
             object = InventoryBalanceUpdateModel(
                 timestamp=local_timezone,

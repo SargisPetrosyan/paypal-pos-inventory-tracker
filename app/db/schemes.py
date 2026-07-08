@@ -19,7 +19,7 @@ class  InventoryUpdateRepository():
             for i in inventory_update:
                 session.add(instance=i)
             session.commit()
-            logger.info(f"products count: '{len(inventory_update)}' and timestamp:{inventory_update[0].timestamp} was stored in database")
+            logger.info(f"Stored {len(inventory_update)} records | timestamp: {inventory_update[0].timestamp}")
     
     def get_product_data(
             self,
