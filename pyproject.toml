@@ -6,10 +6,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "apscheduler>=3.11.2",
+    "azure-servicebus>=7.14.3",
     "dotenv>=0.9.9",
     "fastapi>=0.116.1",
     "httpx>=0.28.1",
+    "kafka-python>=3.0.10",
     "mypy>=1.17.1",
+    "pip>=26.2.1",
     "pytest>=9.0.2",
     "pytz>=2025.2",
     "rich>=14.1.0",

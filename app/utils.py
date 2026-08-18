@@ -4,7 +4,8 @@ import logging
 from uuid import UUID
 from fastapi import Request
 import httpx
-
+from azure.servicebus import ServiceBusClient
+import os
 import pytz
 from datetime import datetime
 
@@ -83,3 +84,8 @@ class ShopInfo:
     def get_shop_name_by_id(self,shop_id:UUID):
         return self.dict[shop_id]
     
+def connect_service_buss():
+    connstr = os.environ["SERVICEBUS_CONNECTION_STR"]
+
+    client: ServiceBusClient = ServiceBusClient.from_connection_string(connstr)
+        

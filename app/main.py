@@ -29,9 +29,9 @@ async def store_inventory_data_webhook(request: Request, backend_task: Backgroun
     payload = parsed_data.get('payload', {})
     logger.info(f"Payload format: type={type(payload).__name__}, has_data={bool(payload)}")
     
-    before_items = len(payload.get('balanceBefore', []))
-    after_items = len(payload.get('balanceAfter', []))
-    logger.info(f"Balance data: before={before_items} items, after={after_items} items")
+    logger.info(f"""
+        Balance data: before={len(payload.get('balanceBefore', []))} items,
+        after={len(payload.get('balanceAfter', []))} items""")
     
     validated_data: InventoryBalanceUpdateValidation = InventoryBalanceUpdateValidation.model_validate(obj=parsed_data)
     logger.info(f"Webhook validated: {len(validated_data.payload.balanceBefore)} items")
