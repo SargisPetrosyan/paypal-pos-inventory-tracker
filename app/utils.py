@@ -89,3 +89,9 @@ def connect_service_buss():
 
     client: ServiceBusClient = ServiceBusClient.from_connection_string(connstr)
         
+
+def check_if_webhook(response:dict) -> dict[str, str] | None:
+    if response["eventName"] == "TestMessage":
+        return {"status":"200"}
+    else:
+        pass
