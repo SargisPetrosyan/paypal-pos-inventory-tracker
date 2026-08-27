@@ -2,8 +2,8 @@
 from datetime import datetime
 from typing import Sequence
 from sqlalchemy import Engine
-from app.db.schemes import InventoryUpdateRepository
-from app.models.inventory import InventoryBalanceUpdateValidation, Payload
+from app.db.schemes import InventoryBalanceUpdateRepository
+from app.models.inventory import InventoryBalanceUpdateValidator, Payload
 from app.db.models import InventoryBalanceUpdateModel
 from app.utils import  any_to_cet
 
@@ -14,10 +14,10 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class InventoryBalanceUpdater:
     def __init__(
             self, 
-            inventory_balance_update:InventoryBalanceUpdateValidation,
-            inventory_update_repository:InventoryUpdateRepository) -> None:
-        self.inventory_balance_update: InventoryBalanceUpdateValidation = inventory_balance_update
-        self.inventory_update_repository:InventoryUpdateRepository = inventory_update_repository
+            inventory_balance_update:InventoryBalanceUpdateValidator,
+            inventory_update_repository:InventoryBalanceUpdateRepository) -> None:
+        self.inventory_balance_update: InventoryBalanceUpdateValidator = inventory_balance_update
+        self.inventory_update_repository:InventoryBalanceUpdateRepository = inventory_update_repository
         
     def store_inventory_update(self) -> None:
         list_of_updates:list[InventoryBalanceUpdateModel] = []

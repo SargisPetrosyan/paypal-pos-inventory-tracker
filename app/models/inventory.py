@@ -31,7 +31,7 @@ class Payload(BaseModel):
     balanceAfter: list[BalanceAfter]
     externalUuid: None  | str
 
-class InventoryBalanceUpdateValidation(BaseModel):
+class InventoryBalanceUpdateValidator(BaseModel):
     organizationUuid: UUID
     messageUuid: UUID
     eventName: str

@@ -10,10 +10,11 @@ import pytz
 from datetime import datetime
 
 from sqlalchemy import Engine
+from sqlmodel import Session
 
 from app.constants import PAYPAL_AUTH_URL, PAYPAL_GRANT_TYPE, PAYPAL_HEADERS, SHOP_SUBSCRIPTION_EVENTS, SWEDEN_TIMEZONE_NAME
-from app.db.schemes import InventoryUpdateRepository
-from app.models.inventory import InventoryBalanceUpdateValidation
+from app.db.schemes import InventoryBalanceUpdateRepository
+from app.models.inventory import InventoryBalanceUpdateValidator
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 import os
@@ -95,3 +96,4 @@ def check_if_webhook(response:dict) -> dict[str, str] | None:
         return {"status":"200"}
     else:
         pass
+

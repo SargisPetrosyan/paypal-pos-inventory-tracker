@@ -10,16 +10,18 @@ import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
-class  InventoryUpdateRepository():
-    def __init__(self,engine) -> None:
+class  InventoryBalanceUpdateRepository():
+    def __init__(self,engine:Engine, session:Session) -> None:
         self.engine: Engine  = engine
+        self.session: Session = session
         
     def store_updated_inventory_data(self,inventory_update: list[InventoryBalanceUpdateModel]) -> None:
-        with Session(bind=self.engine) as session:
-            for i in inventory_update:
-                session.add(instance=i)
-            session.commit()
-            logger.info(f"Stored {len(inventory_update)} records | timestamp: {inventory_update[0].timestamp}")
+        for i in inventory_update:
+            self.session.add(instance=i)
+        self.session.commit()
+        for item in inventory_update:
+            self.session.refresh(item)
+        logger.info(f"Stored {len(inventory_update)} records | timestamp: {inventory_update[0].timestamp}")
     
     def get_product_data(
             self,
@@ -29,18 +31,19 @@ class  InventoryUpdateRepository():
             product_id:uuid.UUID,
             before: int,
             after: int, ) -> Sequence[InventoryBalanceUpdateModel]:
-        with Session(bind=self.engine) as session:
-            statement: SelectOfScalar[InventoryBalanceUpdateModel] = select(InventoryBalanceUpdateModel) \
-                .where(
-                    InventoryBalanceUpdateModel.timestamp == datetime,
-                    InventoryBalanceUpdateModel.shop_id == organization_uuid,
-                    InventoryBalanceUpdateModel.variant_id == variant_id,
-                    InventoryBalanceUpdateModel.product_id == product_id,
-                    InventoryBalanceUpdateModel.before == before,
-                    InventoryBalanceUpdateModel.after == after,
-                    )
-            
-            results: Sequence[InventoryBalanceUpdateModel] = session.exec(statement=statement).all()
-            return results
+        
+        
+        statement: SelectOfScalar[InventoryBalanceUpdateModel] = select(InventoryBalanceUpdateModel) \
+            .where(
+                InventoryBalanceUpdateModel.timestamp == datetime,
+                InventoryBalanceUpdateModel.shop_id == organization_uuid,
+                InventoryBalanceUpdateModel.variant_id == variant_id,
+                InventoryBalanceUpdateModel.product_id == product_id,
+                InventoryBalanceUpdateModel.before == before,
+                InventoryBalanceUpdateModel.after == after,
+                )
+        
+        results: Sequence[InventoryBalanceUpdateModel] = self.session.exec(statement=statement).all()
+        return results
         
             
