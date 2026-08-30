@@ -2,7 +2,7 @@ from hmac import new
 from typing import Any
 from abc import abstractmethod,ABC
 import logging
-
+from dataclasses import dataclass,field
 import httpx
 
 from app.constants import SHOPS
@@ -29,11 +29,17 @@ class WebhookManager(ABC):
     def update_subscription(self,)-> None:
         raise NotImplementedError
 
+@dataclass
 class WebhookSubscriptionClient(WebhookManager):
-    def __init__(self, shop_name:str) -> None:
-        self.shop_name:str = shop_name
-        self.creds_manager: PaypalTokenData = PaypalTokenData(shop_name=self.shop_name)
-        self.credential_context = CredentialContext(shop_name=shop_name)
+
+    shop_name:str
+    creds_manager: PaypalTokenData = field(init=False)
+    credential_context:CredentialContext = field(init=False)
+
+    def __post_init__(self):
+        if not self.creds_manager and not self.credential_context:
+            self.creds_manager: PaypalTokenData = PaypalTokenData(shop_name=self.shop_name)
+            self.credential_context = CredentialContext(shop_name=self.shop_name)
 
     def create_subscription(self) -> None:
         access_token: str = self.creds_manager._get_access_key()

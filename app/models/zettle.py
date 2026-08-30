@@ -1,13 +1,18 @@
 import os
 from typing import Any
+from dataclasses import dataclass,field
 
+from app.constants import PAYPAL_AUTH_URL, PAYPAL_GRANT_TYPE, PAYPAL_HEADERS
+
+@dataclass
 class PaypalCredentials:
-    def __init__(self,shop_name:str) -> None:
-        self.client_id: str =os.environ[f"{shop_name.upper()}_CLIENT_ID"]
-        self.key: str = os.environ[f"{shop_name.upper()}_KEY"]
-        self.grant_type	 = "urn:ietf:params:oauth:grant-type:jwt-bearer"
-        self.auth_url = "https://oauth.zettle.com/token"
-        self.headers = "application/x-www-form-urlencoded"
+    shop_name: str
+    key: str
+    grant_type: str = PAYPAL_GRANT_TYPE
+    auth_url:str = PAYPAL_AUTH_URL
+    headers:str = PAYPAL_HEADERS
+    client_id:str = field(init=False)
 
-    def get_credentials(self) -> dict[str, Any]:
-        return self.__dict__
+    def __post_init__(self):
+        self.client_id: str =os.environ[f"{self.shop_name.upper()}_CLIENT_ID"]
+    

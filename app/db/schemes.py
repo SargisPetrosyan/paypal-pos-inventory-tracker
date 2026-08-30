@@ -5,17 +5,21 @@ from sqlmodel import  Session,select
 from app.db.models import InventoryBalanceUpdateModel
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 import uuid
+from dataclasses import dataclass
 
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
+@dataclass
 class  InventoryBalanceUpdateRepository():
-    def __init__(self,engine:Engine, session:Session) -> None:
-        self.engine: Engine  = engine
-        self.session: Session = session
+    engine:Engine
+    session:Session
+    
+    def store_updated_inventory_data(
+            self,
+            inventory_update: list[InventoryBalanceUpdateModel]) -> None:
         
-    def store_updated_inventory_data(self,inventory_update: list[InventoryBalanceUpdateModel]) -> None:
         for i in inventory_update:
             self.session.add(instance=i)
         self.session.commit()

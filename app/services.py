@@ -6,18 +6,16 @@ from app.db.schemes import InventoryBalanceUpdateRepository
 from app.models.inventory import InventoryBalanceUpdateValidator, Payload
 from app.db.models import InventoryBalanceUpdateModel
 from app.utils import  any_to_cet
+from dataclasses import dataclass
 
 import logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
+@dataclass
 class InventoryBalanceUpdater:
-    def __init__(
-            self, 
-            inventory_balance_update:InventoryBalanceUpdateValidator,
-            inventory_update_repository:InventoryBalanceUpdateRepository) -> None:
-        self.inventory_balance_update: InventoryBalanceUpdateValidator = inventory_balance_update
-        self.inventory_update_repository:InventoryBalanceUpdateRepository = inventory_update_repository
+    inventory_balance_update: InventoryBalanceUpdateValidator
+    inventory_update_repository:InventoryBalanceUpdateRepository
         
     def store_inventory_update(self) -> None:
         list_of_updates:list[InventoryBalanceUpdateModel] = []

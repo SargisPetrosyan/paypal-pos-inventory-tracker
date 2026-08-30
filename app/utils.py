@@ -8,6 +8,7 @@ from azure.servicebus import ServiceBusClient
 import os
 import pytz
 from datetime import datetime
+from dataclasses import dataclass,field
 
 from sqlalchemy import Engine
 from sqlmodel import Session
@@ -21,10 +22,15 @@ import os
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
+@dataclass
 class PaypalTokenData:
-    def __init__(self, shop_name: str) :
-        self.shop_name: str  = shop_name
-        self.access_key: str = self._get_access_key()
+    shop_name: str
+    access_key: str | None = None
+
+    def __post_init__(self):
+        if self.access_key is None:
+            self.access_key = self._get_access_key()
+
     def _get_access_key(self)-> str:
 
         headers: dict[str, str] = {"Content-Type": PAYPAL_HEADERS}
@@ -65,15 +71,17 @@ def any_to_cet(date:datetime) -> datetime:
     SWEDEN_TIMEZONE: datetime = date.astimezone(pytz.timezone(SWEDEN_TIMEZONE_NAME))
     return SWEDEN_TIMEZONE
 
-
+@dataclass
 class CredentialContext():
-    def __init__(self,shop_name:str) -> None:
-        self.name: str = shop_name
-        self.subscription_uuid: str  = os.environ[f"{shop_name.upper()}_SUBSCRIPTION_UUID"]
-        self.destination_url: str  = os.environ["DESTINATION_URL"] + "/inventory_tracker_webhook"
-        self.mail: str = os.environ["MAIL"]
-        self.events: list[str] = SHOP_SUBSCRIPTION_EVENTS
+    shop_name: str
+    mail: str = os.environ["MAIL"]
+    events: list[str] = SHOP_SUBSCRIPTION_EVENTS
+    subscription_uuid: str = field(init=False)
+    destination_url: str = field(init=False)
 
+    def __post_init__(self):
+        self.subscription_uuid: str  = os.environ[f"{self.shop_name.upper()}_SUBSCRIPTION_UUID"]
+        self.destination_url: str  = os.environ["DESTINATION_URL"] + "/inventory_tracker_webhook"
 
 class ShopInfo:
     def __init__(self) -> None:

@@ -1,11 +1,12 @@
 from sqlalchemy import Engine
 from sqlmodel import  SQLModel, create_engine,Session
-import datetime
+from dataclasses import dataclass
 
-
+@dataclass
 class DatabaseConnection:
-    def __init__(self) -> None:
-        self.engine: Engine = create_engine(url=f"sqlite:///database/inventory_changes.db")
+    engine: Engine = create_engine(url=f"sqlite:///database/inventory_changes.db")
+
+    def __post_init__(self):
         SQLModel.metadata.create_all(bind=self.engine)
 
 def get_session(engine:Engine):
