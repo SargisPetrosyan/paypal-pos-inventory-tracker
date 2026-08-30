@@ -12,7 +12,7 @@ from app.constants import SWEDEN_TIMEZONE_NAME
 
 
 def setup_logger() -> None:
-    filename="app/logs/data_registry_logs.log"
+    filename = "app/logs/data_registry_logs.log"
 
     logging.basicConfig(
         filename=filename,
@@ -20,13 +20,18 @@ def setup_logger() -> None:
         filemode="a",
         force=True,
     )
-    logging.Formatter.converter = lambda *args: datetime.now(tz=timezone(SWEDEN_TIMEZONE_NAME)).timetuple()
+    logging.Formatter.converter = lambda *args: datetime.now(
+        tz=timezone(SWEDEN_TIMEZONE_NAME)
+    ).timetuple()
 
     my_handler = RotatingFileHandler(
-        filename=filename, mode='a', 
-        maxBytes=2*1024*1024, 
-        backupCount=5, encoding=None,)
-    
+        filename=filename,
+        mode="a",
+        maxBytes=2 * 1024 * 1024,
+        backupCount=5,
+        encoding=None,
+    )
+
     # Creating an object
     logger: logging.Logger = logging.getLogger()
 
