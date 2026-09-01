@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 @dataclass
 class DatabaseConnection:
-    engine: Engine = create_engine(url=f"sqlite:///database/inventory_changes.db")
+    engine: Engine = create_engine(url='sqlite:///database/inventory_changes.db')
 
     def __post_init__(self):
         SQLModel.metadata.create_all(bind=self.engine)

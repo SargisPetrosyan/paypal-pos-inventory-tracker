@@ -1,45 +1,53 @@
-from pydantic import BaseModel
+from pydantic import BaseModel,ConfigDict
 from datetime import datetime
 from dataclasses import dataclass
 from uuid import UUID
+from pydantic.alias_generators import to_camel
 
+#caseName to camel_case
+class BaseSchema(BaseModel):
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+        from_attributes=True,
+    )
 
-class Updated(BaseModel):
+class Updated(BaseSchema):
     uuid: UUID
     timestamp: datetime
-    userType: str
-    clientUuid: UUID | None
+    user_type: str
+    client_uuid: UUID | None
 
 
-class BalanceBefore(BaseModel):
-    organizationUuid: UUID
-    locationUuid: UUID
-    productUuid: UUID
-    variantUuid: UUID
+class BalanceBefore(BaseSchema):
+    organization_uuid: UUID
+    location_uuid: UUID
+    product_uuid: UUID
+    variant_uuid: UUID
     balance: int
 
 
-class BalanceAfter(BaseModel):
-    organizationUuid: UUID
-    locationUuid: UUID
-    productUuid: UUID
-    variantUuid: UUID
+class BalanceAfter(BaseSchema):
+    organization_uuid: UUID
+    location_uuid: UUID
+    product_uuid: UUID
+    variant_uuid: UUID
     balance: int
 
 
-class Payload(BaseModel):
-    organizationUuid: UUID
+class Payload(BaseSchema):
+    organization_uuid: UUID
     updated: Updated
-    balanceBefore: list[BalanceBefore]
-    balanceAfter: list[BalanceAfter]
-    externalUuid: None | str
+    balance_before: list[BalanceBefore]
+    balance_after: list[BalanceAfter]
+    external_uuid: None | str
 
 
-class InventoryBalanceUpdateValidator(BaseModel):
-    organizationUuid: UUID
-    messageUuid: UUID
-    eventName: str
-    messageId: UUID
+class InventoryBalanceUpdateValidator(BaseSchema):
+    organization_uuid: UUID
+    message_uuid: UUID
+    event_name: str
+    message_id: UUID
     payload: Payload
     timestamp: datetime
 
@@ -51,5 +59,5 @@ class InventoryUpdateData:
     timestamp: datetime
 
 
-class Test_request(BaseModel):
-    text: str
+class TestRequest(BaseSchema):
+    first_name: str

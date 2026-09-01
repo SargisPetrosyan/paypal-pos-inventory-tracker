@@ -27,15 +27,17 @@ class InventoryBalanceUpdateRepository:
         for item in inventory_update:
             self.session.refresh(item)
         logger.info(
-            f"Stored {len(inventory_update)} records | timestamp: {inventory_update[0].timestamp}"
-        )
+        msg="Stored %d records | timestamp: %a" % (
+            len(inventory_update),
+            inventory_update[0].timestamp,
+            ))
 
     def get_product_data(
         self,
-        datetime: datetime,
+        timestamp: datetime,
         organization_uuid: uuid.UUID,
-        variant_id: uuid.UUID,
-        product_id: uuid.UUID,
+        variant_uuid: uuid.UUID,
+        product_uuid: uuid.UUID,
         before: int,
         after: int,
     ) -> Sequence[InventoryBalanceUpdateModel]:
@@ -43,10 +45,10 @@ class InventoryBalanceUpdateRepository:
         statement: SelectOfScalar[InventoryBalanceUpdateModel] = select(
             InventoryBalanceUpdateModel
         ).where(
-            InventoryBalanceUpdateModel.timestamp == datetime,
-            InventoryBalanceUpdateModel.shop_id == organization_uuid,
-            InventoryBalanceUpdateModel.variant_id == variant_id,
-            InventoryBalanceUpdateModel.product_id == product_id,
+            InventoryBalanceUpdateModel.timestamp == timestamp,
+            InventoryBalanceUpdateModel.organization_uuid == organization_uuid,
+            InventoryBalanceUpdateModel.variant_uuid == variant_uuid,
+            InventoryBalanceUpdateModel.product_uuid == product_uuid,
             InventoryBalanceUpdateModel.before == before,
             InventoryBalanceUpdateModel.after == after,
         )

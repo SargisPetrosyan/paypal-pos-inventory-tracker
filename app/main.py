@@ -32,7 +32,7 @@ async def store_inventory_data_webhook(
         InventoryBalanceUpdateValidator.model_validate(obj=response)
     )
     logger.info(
-        f"Webhook validated: {len(inventory_update.payload.balanceBefore)} items"
+        "Webhook validated: %d items",len(inventory_update.payload.balance_before)
     )
     backend_task.add_task(
         func=webhook_handler.process_subscription,

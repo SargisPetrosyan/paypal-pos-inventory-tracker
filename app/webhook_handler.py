@@ -18,8 +18,8 @@ class SubscriptionHandler:
     ) -> None:
 
         logger.info(f"""
-            Balance data: before={len(inventory_update.payload.balanceBefore)} items,
-            after={len(inventory_update.payload.balanceAfter)} items""")
+            Balance data: before={len(inventory_update.payload.balance_before)} items,
+            after={len(inventory_update.payload.balance_after)} items""")
 
         inventory_update_repository: InventoryBalanceUpdateRepository = (
             InventoryBalanceUpdateRepository(engine=engine, session=session)
