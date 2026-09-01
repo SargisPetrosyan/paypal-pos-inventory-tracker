@@ -1,10 +1,10 @@
-from httpx import request
+import logging
+from sqlalchemy import Engine
+
 from sqlmodel import Session
 from app.db.schemes import InventoryBalanceUpdateRepository
 from app.services import InventoryBalanceUpdater
 from app.models.inventory import InventoryBalanceUpdateValidator
-import logging
-from sqlalchemy import Engine
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -17,9 +17,11 @@ class SubscriptionHandler:
         session: Session,
     ) -> None:
 
-        logger.info(f"""
-            Balance data: before={len(inventory_update.payload.balance_before)} items,
-            after={len(inventory_update.payload.balance_after)} items""")
+        logger.info(
+            "Balance data: before=%i items, after=%d items",
+            len(inventory_update.payload.balance_before),
+            len(inventory_update.payload.balance_after),
+            )
 
         inventory_update_repository: InventoryBalanceUpdateRepository = (
             InventoryBalanceUpdateRepository(engine=engine, session=session)

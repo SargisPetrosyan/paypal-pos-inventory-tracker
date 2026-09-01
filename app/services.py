@@ -36,7 +36,7 @@ class InventoryBalanceUpdater:
             if len(product) > 0:
                 logger.debug(
                     "Duplicate: product %d, variant %a",
-                    payload.balance_before[id_].product_uuid, 
+                    payload.balance_before[id_].product_uuid,
                     payload.balance_before[id_].variant_uuid,
                 )
                 continue

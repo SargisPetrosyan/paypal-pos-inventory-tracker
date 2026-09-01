@@ -1,13 +1,14 @@
-from datetime import datetime
-from typing import Sequence
-from sqlalchemy import Engine
-from sqlmodel import Session, select
-from app.db.models import InventoryBalanceUpdateModel
-from sqlmodel.sql._expression_select_cls import SelectOfScalar
 import uuid
 from dataclasses import dataclass
-
+from typing import Sequence
 import logging
+from datetime import datetime
+
+from sqlalchemy import Engine
+from sqlmodel.sql._expression_select_cls import SelectOfScalar
+from sqlmodel import Session, select
+
+from app.db.models import InventoryBalanceUpdateModel
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -27,10 +28,10 @@ class InventoryBalanceUpdateRepository:
         for item in inventory_update:
             self.session.refresh(item)
         logger.info(
-        msg="Stored %d records | timestamp: %a" % (
+        "Stored %d records | timestamp: %i",
             len(inventory_update),
             inventory_update[0].timestamp,
-            ))
+            )
 
     def get_product_data(
         self,

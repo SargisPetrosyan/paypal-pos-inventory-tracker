@@ -1,12 +1,11 @@
-from fastapi import Depends, FastAPI, Request, BackgroundTasks
 import logging
 
 from sqlmodel import Session
-
-from app.utils import ShopInfo, check_if_webhook, json_to_dict
+from fastapi import Depends, FastAPI, Request, BackgroundTasks
+from app.utils import ShopInfo, check_if_webhook
 from app.models.inventory import InventoryBalanceUpdateValidator
 from app.core.logging import setup_logger
-from app.core.config import DatabaseConnection, DatabaseConnection, get_session
+from app.core.config import DatabaseConnection, get_session
 from app.webhook_handler import SubscriptionHandler
 
 setup_logger()
