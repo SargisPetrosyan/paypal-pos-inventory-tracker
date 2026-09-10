@@ -1,6 +1,6 @@
-import datetime
-from sqlmodel import Field, SQLModel, DateTime
 import uuid
+from sqlmodel import Field, SQLModel, DateTime
+import datetime
 
 
 class InventoryBalanceUpdateModel(SQLModel, table=True):
@@ -18,4 +18,3 @@ class InventoryBalanceUpdateModel(SQLModel, table=True):
         before:{self.before},
         after:{self.after},
         change:{self.after}')>"""
-    

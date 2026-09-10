@@ -13,8 +13,8 @@ class InventoryBalanceUpdateModel(SQLModel, table=True):
     after: int
 
     def __repr__(self) -> str:
-        return f"""<InventoryBalanceUpdate(, 
-        timestamp='{self.timestamp}, 
-        before:{self.before}, 
-        after:{self.after}, 
+        return f"""<InventoryBalanceUpdate(,
+        timestamp='{self.timestamp},
+        before:{self.before},
+        after:{self.after},
         change:{self.after}')>"""

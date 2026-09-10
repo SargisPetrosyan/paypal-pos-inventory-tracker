@@ -1,5 +1,4 @@
 import os
-from typing import Any
 from dataclasses import dataclass, field
 
 from app.constants import PAYPAL_AUTH_URL, PAYPAL_GRANT_TYPE, PAYPAL_HEADERS

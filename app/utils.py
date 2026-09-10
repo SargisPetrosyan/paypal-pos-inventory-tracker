@@ -31,7 +31,7 @@ class PaypalTokenData:
     def __post_init__(self):
         if self._access_key is None:
             self.access_key = self._get_access_key()
-    
+            
     @property
     def access_key(self) -> str:
         if not  self._access_key:
