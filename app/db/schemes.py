@@ -22,16 +22,20 @@ class InventoryBalanceUpdateRepository:
         self, inventory_update: list[InventoryBalanceUpdateModel]
     ) -> None:
 
-        for i in inventory_update:
-            self.session.add(instance=i)
-        self.session.commit()
-        for item in inventory_update:
-            self.session.refresh(item)
-        logger.info(
-        "Stored %d records | timestamp: %i",
-            len(inventory_update),
-            inventory_update[0].timestamp,
-            )
+        try:
+            for i in inventory_update:
+                self.session.add(instance=i)
+            self.session.commit()
+            for item in inventory_update:
+                self.session.refresh(item)
+            logger.info(
+            "Stored %d records | timestamp: %i",
+                len(inventory_update),
+                inventory_update[0].timestamp,
+                )
+        except Exception as e:
+            self.session.rollback()
+            raise e
 
     def get_product_data(
         self,

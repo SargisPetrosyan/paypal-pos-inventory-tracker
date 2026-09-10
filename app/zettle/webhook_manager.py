@@ -1,4 +1,3 @@
-from hmac import new
 from typing import Any
 from abc import abstractmethod, ABC
 import logging
@@ -46,7 +45,7 @@ class WebhookSubscriptionClient(WebhookManager):
             self.credential_context = CredentialContext(shop_name=self.shop_name)
 
     def create_subscription(self) -> None:
-        access_token: str = self.creds_manager._get_access_key()
+        access_token: str = self.creds_manager.access_key
         data: dict[str, Any] = {
             "uuid": self.credential_context.subscription_uuid,
             "transportName": "WEBHOOK",
@@ -70,7 +69,7 @@ class WebhookSubscriptionClient(WebhookManager):
         )
 
     def check_subscription(self) -> None | WebhookCheck:
-        access_token: str = self.creds_manager._get_access_key()
+        access_token: str = self.creds_manager.access_key
         result: httpx.Response = httpx.get(
             url="https://pusher.izettle.com/organizations/self/subscriptions",
             headers={
@@ -89,8 +88,8 @@ class WebhookSubscriptionClient(WebhookManager):
         return validated_model
 
     def delete_subscription(self) -> None:
-        access_token: str = self.creds_manager._get_access_key()
-        logger.info(msg=f"deleting subscription")
+        access_token: str = self.creds_manager.access_key
+        logger.info(msg="deleting subscription")
         httpx.delete(
             url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}",
             headers={
@@ -98,16 +97,16 @@ class WebhookSubscriptionClient(WebhookManager):
                 "Content-Type": "application/json",
             },
         )
-        logger.info(f"deleted shop {self.shop_name} subscription ")
+        logger.info("deleted shop  %a subscription",self.shop_name)
 
     def update_subscription(self) -> None:
-        access_token: str = self.creds_manager._get_access_key()
+        access_token: str = self.creds_manager.access_key
         data: dict[str, Any] = {
             "eventNames": self.credential_context.events,
             "destination": self.credential_context.destination_url,
             "contactEmail": self.credential_context.mail,
         }
-        logger.info(msg=f"updating subscription")
+        logger.info(msg="updating subscription")
         response: httpx.Response = httpx.put(
             url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}",
             headers={
@@ -134,14 +133,14 @@ def delete_webhooks() -> None:
 
 def ensure_subscriptions():
     for shop in SHOPS:
-        logger.info(f"ensure subscription for shop '{shop}'")
+        logger.info("ensure subscription for shop '%a'",shop)
         shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
         subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
         if not subscription or subscription.status != "ACTIVE":
             if not subscription:
-                logger.info(f"subscription is '{subscription}' for shop '{shop}'")
+                logger.info("subscription is '%a' for shop '%d'", subscription, shop)
                 shop_webhook_client.create_subscription()
             else:
-                logger.info(f"subscription is '{subscription} for shop '{shop}'")
+                logger.info("subscription is '%a' for shop '%d'", subscription, shop)
                 shop_webhook_client.delete_subscription()
                 shop_webhook_client.create_subscription()

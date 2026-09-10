@@ -1,17 +1,14 @@
 from datetime import datetime, timedelta
+import os
 import json
 import logging
 from uuid import UUID
-from fastapi import Request
-import httpx
-from azure.servicebus import ServiceBusClient
-import os
-import pytz
-from datetime import datetime
 from dataclasses import dataclass, field
 
-from sqlalchemy import Engine
-from sqlmodel import Session
+from fastapi import Request
+import httpx
+import pytz
+
 
 from app.constants import (
     PAYPAL_AUTH_URL,
@@ -20,11 +17,8 @@ from app.constants import (
     SHOP_SUBSCRIPTION_EVENTS,
     SWEDEN_TIMEZONE_NAME,
 )
-from app.db.schemes import InventoryBalanceUpdateRepository
-from app.models.inventory import InventoryBalanceUpdateValidator
 
 logger: logging.Logger = logging.getLogger(name=__name__)
-import os
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -32,11 +26,21 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 @dataclass
 class PaypalTokenData:
     shop_name: str
-    access_key: str | None = None
+    _access_key: str | None = None
 
     def __post_init__(self):
-        if self.access_key is None:
+        if self._access_key is None:
             self.access_key = self._get_access_key()
+    
+    @property
+    def access_key(self) -> str:
+        if not  self._access_key:
+            raise(TypeError("access ky doesn't have value"))
+        return self._access_key
+    
+    @access_key.setter
+    def access_key(self, access_key:str):
+        self._access_key = access_key
 
     def _get_access_key(self) -> str:
 
@@ -59,6 +63,7 @@ class PaypalTokenData:
         ] = str(datetime.now() + timedelta(seconds=formatted_data["expires_in"]))
 
         return formatted_data["access_token"]
+
 
 
 async def json_to_dict(request: Request) -> dict:
@@ -110,13 +115,6 @@ class ShopInfo:
 
     def get_shop_name_by_id(self, shop_id: UUID):
         return self.dict[shop_id]
-
-
-def connect_service_buss():
-    connstr = os.environ["SERVICEBUS_CONNECTION_STR"]
-
-    client: ServiceBusClient = ServiceBusClient.from_connection_string(connstr)
-
 
 def check_if_webhook(response: dict) -> dict[str, str] | None:
     if response["eventName"] == "TestMessage":
