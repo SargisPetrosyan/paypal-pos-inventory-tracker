@@ -21,3 +21,10 @@ PAYPAL_HEADERS = "application/x-www-form-urlencoded"
 SHOPS: tuple = (DALA_SHOP_NAME, ART_AND_CRAFT_NAME, CAFE_NAME)
 
 SHOP_SUBSCRIPTION_EVENTS: list[str] = ["InventoryBalanceChanged"]
+
+WEBHOOK_SUCCEEDED_RETURN:dict[str, str|dict] = {
+            "status": "200",
+            "response": {
+                "message": "Webhook Succeeded",
+            }
+        }

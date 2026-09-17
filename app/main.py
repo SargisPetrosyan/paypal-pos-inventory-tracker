@@ -2,10 +2,11 @@ import logging
 
 from sqlmodel import Session
 from fastapi import Depends, FastAPI, Request, BackgroundTasks
-from app.utils import ShopInfo, check_if_webhook
+from app.constants import WEBHOOK_SUCCEEDED_RETURN
+from app.utils import ShopInfo, webhook_request
 from app.models.inventory import InventoryBalanceUpdateValidator
 from app.core.logging import setup_logger
-from app.core.config import DatabaseConnection, get_session
+from app.core.config import get_session
 from app.webhook_handler import SubscriptionHandler
 
 setup_logger()
@@ -15,18 +16,16 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 webhook_handler = SubscriptionHandler()
 app = FastAPI()
 
-database: DatabaseConnection = DatabaseConnection()
-
-
 @app.post(path="/inventory_tracker_webhook")
 async def store_inventory_data_webhook(
     request: Request,
     backend_task: BackgroundTasks,
     session: Session = Depends(get_session),
-) -> None | dict:
+) :
 
     response: dict = await request.json()
-    check_if_webhook(response=response)
+    if webhook_request(response=response):
+        return WEBHOOK_SUCCEEDED_RETURN
     inventory_update: InventoryBalanceUpdateValidator = (
         InventoryBalanceUpdateValidator.model_validate(obj=response)
     )
@@ -36,6 +35,5 @@ async def store_inventory_data_webhook(
     backend_task.add_task(
         func=webhook_handler.process_subscription,
         inventory_update=inventory_update,
-        engine=database.engine,
         session=session,
     )

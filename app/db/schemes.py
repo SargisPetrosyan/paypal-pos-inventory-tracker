@@ -15,7 +15,6 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 
 @dataclass
 class InventoryBalanceUpdateRepository:
-    engine: Engine
     session: Session
 
     def store_updated_inventory_data(

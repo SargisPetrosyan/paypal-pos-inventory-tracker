@@ -13,7 +13,6 @@ class SubscriptionHandler:
     def process_subscription(
         self,
         inventory_update: InventoryBalanceUpdateValidator,
-        engine: Engine,
         session: Session,
     ) -> None:
 
@@ -24,7 +23,7 @@ class SubscriptionHandler:
             )
 
         inventory_update_repository: InventoryBalanceUpdateRepository = (
-            InventoryBalanceUpdateRepository(engine=engine, session=session)
+            InventoryBalanceUpdateRepository(session=session)
         )
 
         inventory_balance_updater = InventoryBalanceUpdater(

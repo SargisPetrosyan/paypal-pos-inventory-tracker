@@ -8,17 +8,15 @@ from dataclasses import dataclass, field
 from fastapi import Request
 import httpx
 import pytz
+from sqlalchemy import true
 
 
 from app.constants import (
     PAYPAL_AUTH_URL,
     PAYPAL_GRANT_TYPE,
     PAYPAL_HEADERS,
-    SHOP_SUBSCRIPTION_EVENTS,
     SWEDEN_TIMEZONE_NAME,
 )
-
-logger: logging.Logger = logging.getLogger(name=__name__)
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -31,13 +29,11 @@ class PaypalTokenData:
     def __post_init__(self):
         if self._access_key is None:
             self.access_key = self._get_access_key()
-            
     @property
     def access_key(self) -> str:
         if not  self._access_key:
             raise(TypeError("access ky doesn't have value"))
         return self._access_key
-    
     @access_key.setter
     def access_key(self, access_key:str):
         self._access_key = access_key
@@ -92,7 +88,7 @@ def any_to_cet(date: datetime) -> datetime:
 class CredentialContext:
     shop_name: str
     mail: str = os.environ["MAIL"]
-    events: list[str] = SHOP_SUBSCRIPTION_EVENTS
+    events: list[str] = field(default_factory=list[str])
     subscription_uuid: str = field(init=False)
     destination_url: str = field(init=False)
 
@@ -116,8 +112,7 @@ class ShopInfo:
     def get_shop_name_by_id(self, shop_id: UUID):
         return self.dict[shop_id]
 
-def check_if_webhook(response: dict) -> dict[str, str] | None:
+def webhook_request(response: dict) -> bool:
     if response["eventName"] == "TestMessage":
-        return {"status": "200"}
-    else:
-        pass
+        return True
+    return False
