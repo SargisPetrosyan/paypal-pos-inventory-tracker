@@ -6,7 +6,7 @@ from typing import Sequence
 from app.db.schemes import InventoryBalanceUpdateRepository
 from app.models.inventory import InventoryBalanceUpdateValidator, Payload
 from app.db.models import InventoryBalanceUpdateModel
-from app.utils import any_to_cet
+from app.utils import any_to_utc
 
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -21,7 +21,7 @@ class InventoryBalanceUpdater:
         list_of_updates: list[InventoryBalanceUpdateModel] = []
         for id_, _ in enumerate(self.inventory_balance_update.payload.balance_before):
             payload: Payload = self.inventory_balance_update.payload
-            local_timezone: datetime = any_to_cet(date=payload.updated.timestamp)
+            local_timezone: datetime = any_to_utc(date=payload.updated.timestamp)
             product: Sequence[InventoryBalanceUpdateModel] = (
                 self.inventory_update_repository.get_product_data(
                     timestamp=local_timezone,

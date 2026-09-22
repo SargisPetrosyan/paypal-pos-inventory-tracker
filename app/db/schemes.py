@@ -4,7 +4,6 @@ from typing import Sequence
 import logging
 from datetime import datetime
 
-from sqlalchemy import Engine
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 from sqlmodel import Session, select
 

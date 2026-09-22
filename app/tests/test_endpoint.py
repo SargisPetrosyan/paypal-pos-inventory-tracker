@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from httpx import Response
 from app.main import app
 import pytest
-from app.tests.mocked_data import mock_invalid_inventory_data,mock_valid_inventory_data
+from app.tests.mocked_data import mock_invalid_inventory_data
 from pydantic import ValidationError
 
 client = TestClient(app)
@@ -26,5 +26,5 @@ def test_inventory_data_validation():
     with pytest.raises(expected_exception=ValidationError):
             client.post(
         url="/inventory_tracker_webhook",
-        json=mock_valid_inventory_data,
+        json=mock_invalid_inventory_data,
             )

@@ -8,14 +8,13 @@ from dataclasses import dataclass, field
 from fastapi import Request
 import httpx
 import pytz
-from sqlalchemy import true
 
 
 from app.constants import (
     PAYPAL_AUTH_URL,
     PAYPAL_GRANT_TYPE,
     PAYPAL_HEADERS,
-    SWEDEN_TIMEZONE_NAME,
+    UTC_TIMEZONE_NAME,
 )
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -29,11 +28,13 @@ class PaypalTokenData:
     def __post_init__(self):
         if self._access_key is None:
             self.access_key = self._get_access_key()
+
     @property
     def access_key(self) -> str:
         if not  self._access_key:
             raise(TypeError("access ky doesn't have value"))
         return self._access_key
+    
     @access_key.setter
     def access_key(self, access_key:str):
         self._access_key = access_key
@@ -61,7 +62,6 @@ class PaypalTokenData:
         return formatted_data["access_token"]
 
 
-
 async def json_to_dict(request: Request) -> dict:
     body: bytes = await request.body()
     data = json.loads(body)
@@ -78,10 +78,10 @@ async def json_to_dict(request: Request) -> dict:
         data["payload"] = payload
     return data
 
-
-def any_to_cet(date: datetime) -> datetime:
-    SWEDEN_TIMEZONE: datetime = date.astimezone(pytz.timezone(SWEDEN_TIMEZONE_NAME))
-    return SWEDEN_TIMEZONE
+def any_to_utc(date: datetime) -> datetime:
+    """convert any timezone datetime to utc"""
+    utc: datetime = date.astimezone(pytz.timezone(UTC_TIMEZONE_NAME))
+    return utc
 
 
 @dataclass

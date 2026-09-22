@@ -1,5 +1,4 @@
 import logging
-from sqlalchemy import Engine
 
 from sqlmodel import Session
 from app.db.schemes import InventoryBalanceUpdateRepository
