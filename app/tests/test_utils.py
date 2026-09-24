@@ -23,10 +23,10 @@ def test_any_to_cet():
     tzinfo=timezone.utc
     )
 
-    converted_tiemzone_1: datetime = any_to_utc(timezone_1)
-    converted_tiemzone_2: datetime = any_to_utc(timezone_2)
-    assert converted_tiemzone_1 == utc_time
-    assert converted_tiemzone_2 == utc_time
+    converted_timezone_1: datetime = any_to_utc(timezone_1)
+    converted_timezone_2: datetime = any_to_utc(timezone_2)
+    assert converted_timezone_1 == utc_time
+    assert converted_timezone_2 == utc_time
 
 
 @pytest.mark.parametrize(argnames="shop_name, mail, events", argvalues=[

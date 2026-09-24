@@ -1,7 +1,7 @@
 from typing import Any
 
 
-mock_invalid_inventory_data:dict[str, Any] = {
+mock_invalid_inventory_data: dict[str, Any] = {
     "organizationUuid": "50e8400-e29b-41d4-a716-446655440000",
     "messageUuid": "550e8400-e29b-41d4-a716-446655440001",
     "eventName": "inventory.balance.updated",

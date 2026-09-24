@@ -18,7 +18,7 @@ class InventoryBalanceUpdateRepository:
 
     def store_updated_inventory_data(
         self, inventory_update: list[InventoryBalanceUpdateModel]
-    ) -> None:
+    ) -> dict:
 
         try:
             for i in inventory_update:
@@ -27,10 +27,11 @@ class InventoryBalanceUpdateRepository:
             for item in inventory_update:
                 self.session.refresh(item)
             logger.info(
-            "Stored %d records | timestamp: %i",
+            "Stored %d records | timestamp: %s",
                 len(inventory_update),
-                inventory_update[0].timestamp,
+                str(inventory_update[0].timestamp),
                 )
+            return {"message": "Data registered in db"}
         except Exception as e:
             self.session.rollback()
             raise e

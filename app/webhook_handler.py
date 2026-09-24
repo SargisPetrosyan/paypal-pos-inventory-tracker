@@ -13,7 +13,7 @@ class SubscriptionHandler:
         self,
         inventory_update: InventoryBalanceUpdateValidator,
         session: Session,
-    ) -> None:
+    ) :
 
         logger.info(
             "Balance data: before=%i items, after=%d items",
@@ -30,4 +30,4 @@ class SubscriptionHandler:
             inventory_update_repository=inventory_update_repository,
         )
 
-        inventory_balance_updater.store_inventory_update()
+        return inventory_balance_updater.store_inventory_update()

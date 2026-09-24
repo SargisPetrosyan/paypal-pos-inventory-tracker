@@ -17,7 +17,7 @@ class InventoryBalanceUpdater:
     inventory_balance_update: InventoryBalanceUpdateValidator
     inventory_update_repository: InventoryBalanceUpdateRepository
 
-    def store_inventory_update(self) -> None:
+    def store_inventory_update(self):
         list_of_updates: list[InventoryBalanceUpdateModel] = []
         for id_, _ in enumerate(self.inventory_balance_update.payload.balance_before):
             payload: Payload = self.inventory_balance_update.payload
@@ -33,7 +33,7 @@ class InventoryBalanceUpdater:
                 )
             )
 
-            if len(product) > 0:
+            if product:
                 logger.debug(
                     "Duplicate: product %d, variant %a",
                     payload.balance_before[id_].product_uuid,
@@ -50,6 +50,9 @@ class InventoryBalanceUpdater:
             )
 
             list_of_updates.append(inventory_balance)
-        self.inventory_update_repository.store_updated_inventory_data(
+        if not list_of_updates:
+            logger.info("inventory updates are duplicates")
+            return {"message": "Data already exist in db"}
+        return self.inventory_update_repository.store_updated_inventory_data(
             inventory_update=list_of_updates
         )
