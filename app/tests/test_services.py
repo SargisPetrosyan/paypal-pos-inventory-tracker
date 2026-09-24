@@ -4,7 +4,7 @@ from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 import pytest
 
-from app.main import app, get_session  
+from app.main import app, get_session
 from app.tests.mocked_data import mock_valid_inventory_data
 
 @pytest.fixture(name="session")
@@ -17,11 +17,11 @@ def session_fixture():
         yield session
 
 @pytest.fixture(name="client")  
-def client_fixture(session: Session):  
-    def get_session_override():  
+def client_fixture(session: Session):
+    def get_session_override() -> Session:
         return session
 
-    app.dependency_overrides[get_session] = get_session_override  
+    app.dependency_overrides[get_session] = get_session_override
 
     client = TestClient(app)  
     yield client  

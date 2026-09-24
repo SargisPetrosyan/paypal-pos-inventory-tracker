@@ -52,7 +52,7 @@ class InventoryBalanceUpdater:
             list_of_updates.append(inventory_balance)
         if not list_of_updates:
             logger.info("inventory updates are duplicates")
-            return {"message": "Data already exist in db"}
+            return {"message": "Data already exist in db"},
         return self.inventory_update_repository.store_updated_inventory_data(
             inventory_update=list_of_updates
         )
