@@ -32,7 +32,7 @@ class PaypalTokenData:
     @property
     def access_key(self) -> str:
         if not  self._access_key:
-            raise(TypeError("access ky doesn't have value"))
+            raise(TypeError("access kay doesn't have value"))
         return self._access_key
     
     @access_key.setter
@@ -50,7 +50,7 @@ class PaypalTokenData:
             "assertion": os.environ[f"{self.shop_name.upper()}_KEY"],
         }
 
-        response = httpx.post(url=url, data=data, headers=headers)
+        response: httpx.Response = httpx.post(url=url, data=data, headers=headers)
         response.raise_for_status()
 
         formatted_data = response.json()

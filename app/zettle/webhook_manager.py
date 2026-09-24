@@ -119,7 +119,7 @@ class WebhookSubscriptionClient(WebhookManager):
         logger.info(msg=f"updated Dala shop subscription{response.json()}")
 
 
-def delete_webhooks() -> None:
+def delete_all_webhooks() -> None:
     for shop in SHOPS:
         shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
         subscription: None | WebhookCheck = shop_webhook_client.check_subscription()

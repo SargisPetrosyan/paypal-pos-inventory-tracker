@@ -48,4 +48,4 @@ def test_duplicate_inventory_record(client: TestClient):
     app.dependency_overrides.clear()
 
     assert response_2.status_code == 200
-    assert response_2.json() == {"message": "Data already exist in db"}
+    assert response_2.json()[0] == {"message": "Data already exist in db"}
