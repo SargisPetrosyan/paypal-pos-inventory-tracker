@@ -5,6 +5,7 @@ import logging
 from uuid import UUID
 from dataclasses import dataclass, field
 
+from attr import Factory
 from fastapi import Request
 import httpx
 import pytz
@@ -24,6 +25,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 class PaypalTokenData:
     shop_name: str
     _access_key: str | None = None
+    _access_token_dict: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         if self._access_key is None:
@@ -38,28 +40,41 @@ class PaypalTokenData:
     @access_key.setter
     def access_key(self, access_key:str):
         self._access_key = access_key
-
+    
+    def _expired_or_empty(self, current_date: datetime):
+        #format to datetime----------------------
+        expires_date: str | None = self._access_token_dict.get("access_key_expiration_date")
+        if expires_date or expires_date > current_date:
+             return True
+        else:
+            return False
     def _get_access_key(self) -> str:
+        #change it to utc---------------------
+        date: datetime = datetime.now()
 
-        headers: dict[str, str] = {"Content-Type": PAYPAL_HEADERS}
-        url: str = PAYPAL_AUTH_URL
+        if self._expired_or_empty(current_date=date):
+            headers: dict[str, str] = {"Content-Type": PAYPAL_HEADERS}
+            url: str = PAYPAL_AUTH_URL
 
-        data: dict[str, str] = {
-            "grant_type": PAYPAL_GRANT_TYPE,
-            "client_id": os.environ[f"{self.shop_name.upper()}_CLIENT_ID"],
-            "assertion": os.environ[f"{self.shop_name.upper()}_KEY"],
-        }
+            data: dict[str, str] = {
+                "grant_type": PAYPAL_GRANT_TYPE,
+                "client_id": os.environ[f"{self.shop_name.upper()}_CLIENT_ID"],
+                "assertion": os.environ[f"{self.shop_name.upper()}_KEY"],
+            }
 
-        response: httpx.Response = httpx.post(url=url, data=data, headers=headers)
-        response.raise_for_status()
+            response: httpx.Response = httpx.post(url=url, data=data, headers=headers)
+            response.raise_for_status()
 
-        formatted_data = response.json()
+            formatted_data = response.json()
 
-        self.expiration_date = os.environ[
-            f"{self.shop_name.upper()}_ACCESS_KEY_EXPIATION_DATE"
-        ] = str(datetime.now() + timedelta(seconds=formatted_data["expires_in"]))
+            #validate format data by pydantic
 
-        return formatted_data["access_token"]
+            self._access_token_dict["access_key_expiration_date"] = \
+                str(datetime.now() + timedelta(seconds=formatted_data["expired_in"]))
+            
+            self._access_token_dict[f"{self.shop_name}_access_key"] = formatted_data["access_token"]
+
+        return self._access_token_dict[f"{self.shop_name}_access_token"]
 
 
 async def json_to_dict(request: Request) -> dict:
