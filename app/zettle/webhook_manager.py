@@ -3,6 +3,7 @@ from abc import abstractmethod, ABC
 import logging
 from dataclasses import dataclass, field
 import httpx
+from fastapi import Request
 
 from app.constants import SHOPS
 from app.models.webhook import WebhookCheck
@@ -144,3 +145,7 @@ def ensure_subscriptions():
                 logger.info("subscription is '%a' for shop '%d'", subscription, shop)
                 shop_webhook_client.delete_subscription()
                 shop_webhook_client.create_subscription()
+
+def ensure_request_identity(request:Request):
+    #request validation logic
+    ...

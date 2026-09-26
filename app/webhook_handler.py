@@ -9,7 +9,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 
 
 class SubscriptionHandler:
-    def process_subscription(
+    async def process_subscription(
         self,
         inventory_update: InventoryBalanceUpdateValidator,
         session: Session,

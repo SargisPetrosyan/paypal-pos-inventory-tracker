@@ -5,7 +5,6 @@ import logging
 from uuid import UUID
 from dataclasses import dataclass, field
 
-from attr import Factory
 from fastapi import Request
 import httpx
 import pytz
@@ -128,6 +127,6 @@ class ShopInfo:
         return self.dict[shop_id]
 
 def webhook_request(response: dict) -> bool:
-    if response["eventName"] == "TestMessage":
+    if response.get("eventName") == "TestMessage":
         return True
     return False

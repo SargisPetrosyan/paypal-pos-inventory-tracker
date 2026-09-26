@@ -8,6 +8,7 @@ from app.models.inventory import InventoryBalanceUpdateValidator
 from app.core.logging import setup_logger
 from app.core.config import get_session
 from app.webhook_handler import SubscriptionHandler
+from app.zettle.webhook_manager import ensure_request_identity
 
 setup_logger()
 shop_info = ShopInfo()
@@ -21,7 +22,8 @@ async def store_inventory_data_webhook(
     request: Request,
     session: Session = Depends(dependency=get_session),
 ) :
-
+    
+    ensure_request_identity(request=request)
     response: dict = await request.json()
     if webhook_request(response=response):
         return WEBHOOK_SUCCEEDED_RETURN
@@ -31,4 +33,4 @@ async def store_inventory_data_webhook(
     logger.info(
         "Webhook validated: %d items",len(inventory_update.payload.balance_before)
     )
-    return webhook_handler.process_subscription(inventory_update=inventory_update,session=session)
+    return await webhook_handler.process_subscription(inventory_update=inventory_update,session=session)
