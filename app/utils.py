@@ -15,6 +15,8 @@ from app.constants import (
     PAYPAL_GRANT_TYPE,
     PAYPAL_HEADERS,
     UTC_TIMEZONE_NAME,
+    ACCESS_KEY_EXPIRES_DATE,
+    WEBHOOK_NAME
 )
 
 logger: logging.Logger = logging.getLogger(name=__name__)
@@ -35,18 +37,20 @@ class PaypalTokenData:
         if not  self._access_key:
             raise(TypeError("access kay doesn't have value"))
         return self._access_key
-    
+
     @access_key.setter
     def access_key(self, access_key:str):
         self._access_key = access_key
-    
+
     def _expired_or_empty(self, current_date: datetime):
         #format to datetime----------------------
-        expires_date: str | None = self._access_token_dict.get("access_key_expiration_date")
-        if expires_date or expires_date > current_date:
-             return True
-        else:
-            return False
+        expires_date: str | None = self._access_token_dict.get(ACCESS_KEY_EXPIRES_DATE)
+        if expires_date:
+            date_object: datetime = datetime.strptime(expires_date, "%Y-%m-%d %H:%M:%S")
+            if date_object > current_date:
+                return True
+        return False
+    
     def _get_access_key(self) -> str:
         #change it to utc---------------------
         date: datetime = datetime.now()
@@ -68,7 +72,7 @@ class PaypalTokenData:
 
             #validate format data by pydantic
 
-            self._access_token_dict["access_key_expiration_date"] = \
+            self._access_token_dict[ACCESS_KEY_EXPIRES_DATE] = \
                 str(datetime.now() + timedelta(seconds=formatted_data["expired_in"]))
             
             self._access_token_dict[f"{self.shop_name}_access_key"] = formatted_data["access_token"]
@@ -111,7 +115,7 @@ class CredentialContext:
             f"{self.shop_name.upper()}_SUBSCRIPTION_UUID"
         ]
         self.destination_url: str = (
-            os.environ["DESTINATION_URL"] + "/inventory_tracker_webhook"
+            os.environ["DESTINATION_URL"] + "/" + WEBHOOK_NAME
         )
 
 

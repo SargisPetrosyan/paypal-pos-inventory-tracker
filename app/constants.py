@@ -23,8 +23,11 @@ PAYPAL_HEADERS = "application/x-www-form-urlencoded"
 SHOP_SUBSCRIPTION_EVENTS: list[str] = ["InventoryBalanceChanged"]
 
 WEBHOOK_SUCCEEDED_RETURN:dict[str, str|dict] = {
-            "status": "200",
-            "response": {
-                "message": "Webhook Succeeded",
-            }
-        }
+    "status": "200",
+    "response": {
+        "message": "Webhook Succeeded",
+    }
+}
+
+ACCESS_KEY_EXPIRES_DATE: str = "access_key_expiration_date"
+WEBHOOK_NAME:str = "inventory_tracker_webhook"
