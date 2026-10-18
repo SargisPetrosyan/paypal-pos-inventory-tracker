@@ -20,6 +20,7 @@ app = FastAPI()
 @app.post(path="/inventory_tracker_webhook")
 async def store_inventory_data_webhook(
     request: Request,
+    
     session: Session = Depends(dependency=get_session),
 ) :
     

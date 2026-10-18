@@ -8,6 +8,8 @@ from fastapi import Request
 from app.constants import SHOPS
 from app.models.webhook import WebhookCheck
 from app.utils import CredentialContext, PaypalTokenData
+import hashlib
+import hmac
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -146,6 +148,19 @@ def ensure_subscriptions():
                 shop_webhook_client.delete_subscription()
                 shop_webhook_client.create_subscription()
 
-def ensure_request_identity(request:Request):
-    #request validation logic
-    ...
+async def ensure_request_identity(request:Request):
+    raw_body: bytes = await request.body()
+    local_secret = b"your_local_secret_here" # Must be bytes
+
+    # Step 3: Compute the local hash
+    computed_hash = hmac.new(
+        key=local_secret, 
+        msg=raw_body, 
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    # Step 4: Compare securely using a timing-safe method
+    if not hmac.compare_digest(computed_hash, x_signature):
+        raise ValueError("Invalid signature")
+
+    return {"status": "success"}
