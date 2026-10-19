@@ -2,40 +2,41 @@ from datetime import datetime, timedelta
 import os
 import json
 import logging
+import hmac
+import hashlib
 from uuid import UUID
 from dataclasses import dataclass, field
 
-from fastapi import Request
+from fastapi import HTTPException, Request
 import httpx
 import pytz
+import rich
 
 
 from app.constants import (
     PAYPAL_AUTH_URL,
     PAYPAL_GRANT_TYPE,
     PAYPAL_HEADERS,
+    SHOP_SUBSCRIPTION_EVENTS,
     UTC_TIMEZONE_NAME,
     ACCESS_KEY_EXPIRES_DATE,
     WEBHOOK_NAME
 )
+from app.models.webhook import AccessToken
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 
 @dataclass
-class PaypalTokenData:
+class PaypalAccessTokenManager:
     shop_name: str
     _access_key: str | None = None
     _access_token_dict: dict[str, str] = field(default_factory=dict)
 
-    def __post_init__(self):
-        if self._access_key is None:
-            self.access_key = self._get_access_key()
-
     @property
     def access_key(self) -> str:
-        if not  self._access_key:
-            raise(TypeError("access kay doesn't have value"))
+        if not self._access_key:
+            raise ValueError("access_key is empty")
         return self._access_key
 
     @access_key.setter
@@ -43,15 +44,15 @@ class PaypalTokenData:
         self._access_key = access_key
 
     def _expired_or_empty(self, current_date: datetime):
-        #format to datetime----------------------
         expires_date: str | None = self._access_token_dict.get(ACCESS_KEY_EXPIRES_DATE)
-        if expires_date:
-            date_object: datetime = datetime.strptime(expires_date, "%Y-%m-%d %H:%M:%S")
-            if date_object > current_date:
-                return True
+        if not expires_date:
+            return True
+        date_object: datetime = datetime.strptime(expires_date, "%Y-%m-%d %H:%M:%S")
+        if date_object > current_date:
+            return True
         return False
     
-    def _get_access_key(self) -> str:
+    def get_access_key(self) -> str:
         #change it to utc---------------------
         date: datetime = datetime.now()
 
@@ -70,14 +71,16 @@ class PaypalTokenData:
 
             formatted_data = response.json()
 
+            validated_access_key: AccessToken = AccessToken.model_validate(formatted_data)
+            rich.print(validated_access_key)
             #validate format data by pydantic
 
             self._access_token_dict[ACCESS_KEY_EXPIRES_DATE] = \
-                str(datetime.now() + timedelta(seconds=formatted_data["expired_in"]))
+                str(datetime.now() + timedelta(seconds=validated_access_key.expires_in))
             
-            self._access_token_dict[f"{self.shop_name}_access_key"] = formatted_data["access_token"]
-
-        return self._access_token_dict[f"{self.shop_name}_access_token"]
+            self._access_token_dict["access_key"] = validated_access_key.access_token
+            rich.print(self._access_token_dict)
+        return self._access_token_dict["access_key"]
 
 
 async def json_to_dict(request: Request) -> dict:
@@ -117,6 +120,7 @@ class CredentialContext:
         self.destination_url: str = (
             os.environ["DESTINATION_URL"] + "/" + WEBHOOK_NAME
         )
+        self.events = SHOP_SUBSCRIPTION_EVENTS
 
 
 class ShopInfo:
@@ -134,3 +138,21 @@ def webhook_request(response: dict) -> bool:
     if response.get("eventName") == "TestMessage":
         return True
     return False
+
+
+async def ensure_request_identity(request:Request) -> None:
+    signing_key = "ptY4FBXfUG4TLITSlesyTVXWbBfqcJKlbZbpgVbghMPOKYtdOJhQspc74GSO7NGb"
+    received_signature: str = request.headers.get("x-izettle-signature",default='')
+    raw_body: bytes = await request.body()
+
+    expected_signature: str = hmac.new(
+        key=signing_key.encode("utf-8"),
+        msg=raw_body,
+        digestmod=hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(expected_signature, received_signature):
+        raise HTTPException(
+            status_code=406,
+            detail="Invalid webhook signature"
+        )

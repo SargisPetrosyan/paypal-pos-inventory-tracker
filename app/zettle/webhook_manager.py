@@ -1,13 +1,16 @@
 from typing import Any
 from abc import abstractmethod, ABC
+import requests
+
 import logging
 from dataclasses import dataclass, field
 import httpx
 from fastapi import Request
+import rich
 
 from app.constants import SHOPS
 from app.models.webhook import WebhookCheck
-from app.utils import CredentialContext, PaypalTokenData
+from app.utils import CredentialContext, PaypalAccessTokenManager
 import hashlib
 import hmac
 
@@ -16,7 +19,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 
 class WebhookManager(ABC):
     @abstractmethod
-    def create_subscription(self) -> None:
+    def create_subscription(self) -> None| dict:
         raise NotImplementedError
 
     @abstractmethod
@@ -37,18 +40,11 @@ class WebhookManager(ABC):
 @dataclass
 class WebhookSubscriptionClient(WebhookManager):
     shop_name: str
-    creds_manager: PaypalTokenData = field(init=False)
-    credential_context: CredentialContext = field(init=False)
+    creds_manager: PaypalAccessTokenManager
+    credential_context: CredentialContext
 
-    def __post_init__(self):
-        if not self.creds_manager and not self.credential_context:
-            self.creds_manager: PaypalTokenData = PaypalTokenData(
-                shop_name=self.shop_name
-            )
-            self.credential_context = CredentialContext(shop_name=self.shop_name)
-
-    def create_subscription(self) -> None:
-        access_token: str = self.creds_manager.access_key
+    def create_subscription(self) -> None | dict:
+        access_token: str = self.creds_manager.get_access_key()
         data: dict[str, Any] = {
             "uuid": self.credential_context.subscription_uuid,
             "transportName": "WEBHOOK",
@@ -66,13 +62,18 @@ class WebhookSubscriptionClient(WebhookManager):
             },
             timeout=15,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as e:
+            rich.print(e)
         logger.info(
             msg=f"created subscription for shop {self.shop_name} response : {response.json()}"
         )
 
+        return response.json()
+
     def check_subscription(self) -> None | WebhookCheck:
-        access_token: str = self.creds_manager.access_key
+        access_token: str = self.creds_manager.get_access_key()
         result: httpx.Response = httpx.get(
             url="https://pusher.izettle.com/organizations/self/subscriptions",
             headers={
@@ -91,7 +92,7 @@ class WebhookSubscriptionClient(WebhookManager):
         return validated_model
 
     def delete_subscription(self) -> None:
-        access_token: str = self.creds_manager.access_key
+        access_token: str = self.creds_manager.get_access_key()
         logger.info(msg="deleting subscription")
         httpx.delete(
             url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}",
@@ -103,7 +104,7 @@ class WebhookSubscriptionClient(WebhookManager):
         logger.info("deleted shop  %a subscription",self.shop_name)
 
     def update_subscription(self) -> None:
-        access_token: str = self.creds_manager.access_key
+        access_token: str = self.creds_manager.get_access_key()
         data: dict[str, Any] = {
             "eventNames": self.credential_context.events,
             "destination": self.credential_context.destination_url,
@@ -122,45 +123,27 @@ class WebhookSubscriptionClient(WebhookManager):
         logger.info(msg=f"updated Dala shop subscription{response.json()}")
 
 
-def delete_all_webhooks() -> None:
+def delete_all_webhooks(subscription_client:WebhookSubscriptionClient) -> None:
     for shop in SHOPS:
-        shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
-        subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
+        subscription: None | WebhookCheck = subscription_client.check_subscription()
         if not subscription or subscription.status is not "ACTIVE":
             if not subscription:
                 logger.info(msg=f"there is not any subscription for {shop}")
                 continue
             else:
-                shop_webhook_client.delete_subscription()
+                subscription_client.delete_subscription()
 
 
-def ensure_subscriptions():
+def ensure_subscriptions(subscription_client:WebhookSubscriptionClient):
     for shop in SHOPS:
         logger.info("ensure subscription for shop '%a'",shop)
-        shop_webhook_client = WebhookSubscriptionClient(shop_name=shop)
-        subscription: None | WebhookCheck = shop_webhook_client.check_subscription()
+        subscription: None | WebhookCheck = subscription_client.check_subscription()
         if not subscription or subscription.status != "ACTIVE":
             if not subscription:
                 logger.info("subscription is '%a' for shop '%d'", subscription, shop)
-                shop_webhook_client.create_subscription()
+                subscription_client.create_subscription()
             else:
                 logger.info("subscription is '%a' for shop '%d'", subscription, shop)
-                shop_webhook_client.delete_subscription()
-                shop_webhook_client.create_subscription()
+                subscription_client.delete_subscription()
+                subscription_client.create_subscription()
 
-async def ensure_request_identity(request:Request):
-    raw_body: bytes = await request.body()
-    local_secret = b"your_local_secret_here" # Must be bytes
-
-    # Step 3: Compute the local hash
-    computed_hash = hmac.new(
-        key=local_secret, 
-        msg=raw_body, 
-        digestmod=hashlib.sha256
-    ).hexdigest()
-
-    # Step 4: Compare securely using a timing-safe method
-    if not hmac.compare_digest(computed_hash, x_signature):
-        raise ValueError("Invalid signature")
-
-    return {"status": "success"}
