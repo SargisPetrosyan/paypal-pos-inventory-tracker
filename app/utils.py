@@ -14,15 +14,17 @@ import rich
 
 
 from app.constants import (
+    DALA_SHOP_NAME,
     PAYPAL_AUTH_URL,
     PAYPAL_GRANT_TYPE,
     PAYPAL_HEADERS,
     SHOP_SUBSCRIPTION_EVENTS,
+    SHOPS,
     UTC_TIMEZONE_NAME,
     ACCESS_KEY_EXPIRES_DATE,
     WEBHOOK_NAME
 )
-from app.models.webhook import AccessToken
+from app.models.webhook import AccessToken, WebhookSubscription
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -134,25 +136,33 @@ class ShopInfo:
     def get_shop_name_by_id(self, shop_id: UUID):
         return self.dict[shop_id]
 
-def webhook_request(response: dict) -> bool:
+def webhook_subscription(response: dict,) -> bool:
     if response.get("eventName") == "TestMessage":
         return True
     return False
 
 
-async def ensure_request_identity(request:Request) -> None:
-    signing_key = "ptY4FBXfUG4TLITSlesyTVXWbBfqcJKlbZbpgVbghMPOKYtdOJhQspc74GSO7NGb"
+async def webhook_validaton(request:Request, webhook_signing_keys:set[str]) -> None:
     received_signature: str = request.headers.get("x-izettle-signature",default='')
     raw_body: bytes = await request.body()
+    validated:bool = False
+    for key in webhook_signing_keys:
+        expected_signature: str = hmac.new(
+            key=key.encode("utf-8"),
+            msg=raw_body,
+            digestmod=hashlib.sha256
+        ).hexdigest()
 
-    expected_signature: str = hmac.new(
-        key=signing_key.encode("utf-8"),
-        msg=raw_body,
-        digestmod=hashlib.sha256
-    ).hexdigest()
-
-    if not hmac.compare_digest(expected_signature, received_signature):
+        if hmac.compare_digest(expected_signature, received_signature):
+            validated = True
+            break
+    if not validated:
         raise HTTPException(
-            status_code=406,
+            status_code=401,
             detail="Invalid webhook signature"
         )
+  
+def set_webhook_sign_key(validated_response:WebhookSubscription, signing_key:set[str]) -> set[str]:
+    if validated_response.uuid not in signing_key:
+        signing_key.add(validated_response.uuid)
+    return signing_key
