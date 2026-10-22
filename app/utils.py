@@ -172,14 +172,10 @@ async def webhook_validaton(request:Request, webhook_signing_keys:set[str] | Non
             status_code=401,
             detail="Invalid webhook signature"
         )
-def load_webhook_signing_keys(engine: Engine) -> set[str]:
-    with Session(engine) as session:
-        result: SelectOfScalar[str] = select(ZettleSigningKey.signing_key)
-        results: Sequence[str] = session.exec(
-            statement=result
-        ).all()
+async def load_webhook_signing_keys(session: AsyncSession) -> set[str]:
+    statement: SelectOfScalar = select(ZettleSigningKey.signing_key)
+    results: Sequence[str] = await session.execute(statement=statement).scalars().all()
     return set(results)
-
 class SigningKeyEngine():
     def __init__(self)  -> None:
         self.engine: Engine = create_engine(os.environ["SIGNING_KEYS_DB_URL"])

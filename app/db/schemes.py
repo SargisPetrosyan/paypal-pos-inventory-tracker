@@ -3,9 +3,9 @@ from dataclasses import dataclass
 from typing import Sequence
 import logging
 from datetime import datetime
-
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
-from sqlmodel import Session, select
+from sqlmodel import select
 
 from app.db.models import InventoryBalanceUpdateModel,ZettleSigningKey
 
@@ -14,18 +14,18 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 
 @dataclass
 class InventoryBalanceUpdateRepository:
-    session: Session
+    session: AsyncSession
 
-    def store_updated_inventory_data(
+    async def store_updated_inventory_data(
         self, inventory_update: list[InventoryBalanceUpdateModel]
     ) -> dict:
 
         try:
             for i in inventory_update:
                 self.session.add(instance=i)
-            self.session.commit()
+            await self.session.commit()
             for item in inventory_update:
-                self.session.refresh(item)
+                await self.session.refresh(item)
             logger.info(
             "Stored %d records | timestamp: %s",
                 len(inventory_update),
@@ -33,10 +33,10 @@ class InventoryBalanceUpdateRepository:
                 )
             return {"message": "Data registered in db"}
         except Exception as e:
-            self.session.rollback()
+            await self.session.rollback()
             raise e
 
-    def get_product_data(
+    async def get_product_data(
         self,
         timestamp: datetime,
         organization_uuid: uuid.UUID,
@@ -57,19 +57,20 @@ class InventoryBalanceUpdateRepository:
             InventoryBalanceUpdateModel.after == after,
         )
 
-        results: Sequence[InventoryBalanceUpdateModel] = self.session.exec(
+        results= await self.session.execute(
             statement=statement
-        ).all()
+        ).scalars().all()
         return results
 
 
 @dataclass
 class SigningKeyRepository:
-    session: Session
+    session: AsyncSession
     
-    def get_signing_keys(self) -> Sequence[str]:
+    async def get_signing_keys(self) -> Sequence[str]:
         statement: SelectOfScalar[str] = select(
             ZettleSigningKey.signing_key
         )
-        results: Sequence[str] = self.session.exec(statement=statement).all()
-        return results
+        results: Sequence[str] =await self.session.execute(statement=statement)
+        
+        items = results.scalars().all()
