@@ -6,6 +6,12 @@ import hmac
 import hashlib
 from uuid import UUID
 from dataclasses import dataclass, field
+from sqlalchemy import Engine
+from sqlmodel import Field, SQLModel, create_engine, Session,select
+from sqlmodel.sql._expression_select_cls import SelectOfScalar
+from app.zettle_models import ZettleSigningKey
+from typing import Sequence
+
 
 from fastapi import HTTPException, Request
 import httpx
@@ -161,12 +167,15 @@ async def webhook_validaton(request:Request, webhook_signing_keys:set[str]) -> N
             status_code=401,
             detail="Invalid webhook signature"
         )
+def load_webhook_signing_keys(engine: Engine) -> set[str]:
+    with Session(engine) as session:
+        result: SelectOfScalar[str]= select(ZettleSigningKey.signing_key)
+        results: Sequence[str] = session.exec(
+            statement=result
+        ).all()
+    return set(results)
 
-
-def configured_webhook_signing_keys() -> set[str]:
-    return {
-        signing_key
-        for shop in SHOPS
-        if (signing_key := os.environ.get(f"{shop.upper()}_WEBHOOK_SIGNING_KEY"))
-    }
-
+def create_signing_key_engine() -> Engine:
+    engine: Engine = create_engine("sqlite:///database.db")
+    SQLModel.metadata.create_all(engine)
+    return engine

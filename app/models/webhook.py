@@ -22,3 +22,4 @@ class WebhookSubscription(BaseSchema):
     contact_email: EmailStr
     status: str
     signing_key: str
+    

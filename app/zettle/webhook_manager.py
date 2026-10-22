@@ -38,17 +38,17 @@ class WebhookManager(ABC):
 @dataclass
 class WebhookSubscriptionClient(WebhookManager):
     shop_name: str
-    creds_manager: PaypalAccessTokenManager
-    credential_context: CredentialContext
+    access_token_manager: PaypalAccessTokenManager
+    subscription_config: CredentialContext
 
     def create_subscription(self) -> None | dict:
-        access_token: str = self.creds_manager.get_access_key()
+        access_token: str = self.access_token_manager.get_access_key()
         data: dict[str, Any] = {
-            "uuid": self.credential_context.subscription_uuid,
+            "uuid": self.subscription_config.subscription_uuid,
             "transportName": "WEBHOOK",
-            "eventNames": self.credential_context.events,
-            "destination": self.credential_context.destination_url,
-            "contactEmail": self.credential_context.mail,
+            "eventNames": self.subscription_config.events,
+            "destination": self.subscription_config.destination_url,
+            "contactEmail": self.subscription_config.mail,
         }
         logger.info(msg="creating subscription")
         response: httpx.Response = httpx.post(
@@ -66,7 +66,7 @@ class WebhookSubscriptionClient(WebhookManager):
         return subscription
 
     def check_subscription(self) -> None | WebhookCheck:
-        access_token: str = self.creds_manager.get_access_key()
+        access_token: str = self.access_token_manager.get_access_key()
         result: httpx.Response = httpx.get(
             url="https://pusher.izettle.com/organizations/self/subscriptions",
             headers={
@@ -85,10 +85,10 @@ class WebhookSubscriptionClient(WebhookManager):
         return validated_model
 
     def delete_subscription(self) -> None:
-        access_token: str = self.creds_manager.get_access_key()
+        access_token: str = self.access_token_manager.get_access_key()
         logger.info(msg="deleting subscription")
         httpx.delete(
-            url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}",
+            url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.subscription_config.subscription_uuid}",
             headers={
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json",
@@ -97,15 +97,15 @@ class WebhookSubscriptionClient(WebhookManager):
         logger.info("deleted shop  %a subscription",self.shop_name)
 
     def update_subscription(self) -> None:
-        access_token: str = self.creds_manager.get_access_key()
+        access_token: str = self.access_token_manager.get_access_key()
         data: dict[str, Any] = {
-            "eventNames": self.credential_context.events,
-            "destination": self.credential_context.destination_url,
-            "contactEmail": self.credential_context.mail,
+            "eventNames": self.subscription_config.events,
+            "destination": self.subscription_config.destination_url,
+            "contactEmail": self.subscription_config.mail,
         }
         logger.info(msg="updating subscription")
         response: httpx.Response = httpx.put(
-            url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.credential_context.subscription_uuid}",
+            url=f"https://pusher.izettle.com/organizations/self/subscriptions/{self.subscription_config.subscription_uuid}",
             headers={
                 "Authorization": f"Bearer {access_token}",
                 "Content-Type": "application/json",
@@ -127,14 +127,21 @@ def delete_all_webhooks(subscription_client:WebhookSubscriptionClient) -> None:
                 subscription_client.delete_subscription()
 
 
-def ensure_subscriptions(subscription_client:WebhookSubscriptionClient):
+def ensure_subscriptions() -> None:
     for shop in SHOPS:
+        subscription_config: CredentialContext = CredentialContext(shop_name=shop)
+        access_token_manager: PaypalAccessTokenManager = PaypalAccessTokenManager(shop_name=shop)
+        subscription_client: WebhookSubscriptionClient = WebhookSubscriptionClient(
+            subscription_config=subscription_config, 
+            access_token_manager=access_token_manager, 
+            shop_name=shop)
+        
         logger.info("ensure subscription for shop '%a'",shop)
         subscription: None | WebhookCheck = subscription_client.check_subscription()
         if not subscription or subscription.status != "ACTIVE":
             if not subscription:
                 logger.info("subscription is '%a' for shop '%d'", subscription, shop)
-                subscription_client.create_subscription()
+                response = subscription_client.create_subscription()
             else:
                 logger.info("subscription is '%a' for shop '%d'", subscription, shop)
                 subscription_client.delete_subscription()
