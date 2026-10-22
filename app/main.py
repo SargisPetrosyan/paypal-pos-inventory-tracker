@@ -22,7 +22,6 @@ setup_logger()
 logger: logging.Logger = logging.getLogger(name=__name__)
 
 webhook_handler = SubscriptionHandler()
-app = FastAPI()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
