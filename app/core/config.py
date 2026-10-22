@@ -2,17 +2,21 @@ from typing import Any, Generator
 from sqlalchemy import Engine
 from sqlmodel import SQLModel, create_engine, Session
 from dataclasses import dataclass
+import os
 
 
-@dataclass
 class DatabaseConnection:
-    engine: Engine = create_engine(url='sqlite:///database/inventory_changes.db')
-
-    def __post_init__(self):
+    def __init__(self,database_url: str) -> None:
+        self.engine: Engine = create_engine(url=database_url)
         SQLModel.metadata.create_all(bind=self.engine)
 
-database: DatabaseConnection = DatabaseConnection()
+inventory_changes_database: DatabaseConnection = DatabaseConnection(database_url=os.environ["DB_URL"])
+signing_key_database: DatabaseConnection = DatabaseConnection(database_url=os.environ["SIGNING_KEYS_DB_URL"])
 
-def get_session() -> Generator[Session, Any, None]:
-    with Session(database.engine) as session:
+def get_inventory_db_session() -> Generator[Session, Any, None]:
+    with Session(inventory_changes_database.engine) as session:
+        yield session
+
+def get_signing_key_db_session() -> Generator[Session, Any, None]:
+    with Session(signing_key_database.engine) as session:
         yield session

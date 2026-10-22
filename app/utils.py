@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 from sqlalchemy import Engine
 from sqlmodel import Field, SQLModel, create_engine, Session,select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
-from app.zettle_models import ZettleSigningKey
 from typing import Sequence
+from app.db.models import ZettleSigningKey
 
 
 from fastapi import HTTPException, Request
@@ -148,7 +148,12 @@ def webhook_subscription(response: dict,) -> bool:
     return False
 
 
-async def webhook_validaton(request:Request, webhook_signing_keys:set[str]) -> None:
+async def webhook_validaton(request:Request, webhook_signing_keys:set[str] | None) -> None:
+    if not webhook_signing_keys:
+        raise HTTPException(
+            status_code=401,
+            detail="No signing keys found for validation"
+        )
     received_signature: str = request.headers.get("x-izettle-signature", "")
     raw_body: bytes = await request.body()
     validated:bool = False
@@ -169,13 +174,13 @@ async def webhook_validaton(request:Request, webhook_signing_keys:set[str]) -> N
         )
 def load_webhook_signing_keys(engine: Engine) -> set[str]:
     with Session(engine) as session:
-        result: SelectOfScalar[str]= select(ZettleSigningKey.signing_key)
+        result: SelectOfScalar[str] = select(ZettleSigningKey.signing_key)
         results: Sequence[str] = session.exec(
             statement=result
         ).all()
     return set(results)
 
-def create_signing_key_engine() -> Engine:
-    engine: Engine = create_engine("sqlite:///database.db")
-    SQLModel.metadata.create_all(engine)
-    return engine
+class SigningKeyEngine():
+    def __init__(self)  -> None:
+        self.engine: Engine = create_engine(os.environ["SIGNING_KEYS_DB_URL"])
+        SQLModel.metadata.create_all(self.engine)

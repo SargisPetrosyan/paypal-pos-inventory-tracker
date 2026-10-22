@@ -7,7 +7,7 @@ from datetime import datetime
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 from sqlmodel import Session, select
 
-from app.db.models import InventoryBalanceUpdateModel
+from app.db.models import InventoryBalanceUpdateModel,ZettleSigningKey
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -60,4 +60,16 @@ class InventoryBalanceUpdateRepository:
         results: Sequence[InventoryBalanceUpdateModel] = self.session.exec(
             statement=statement
         ).all()
+        return results
+
+
+@dataclass
+class SigningKeyRepository:
+    session: Session
+    
+    def get_signing_keys(self) -> Sequence[str]:
+        statement: SelectOfScalar[str] = select(
+            ZettleSigningKey.signing_key
+        )
+        results: Sequence[str] = self.session.exec(statement=statement).all()
         return results
