@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import os
-import json
+import json      
 import logging
 import hmac
 import hashlib
@@ -24,7 +24,7 @@ from app.constants import (
     ACCESS_KEY_EXPIRES_DATE,
     WEBHOOK_NAME
 )
-from app.models.webhook import AccessToken, WebhookSubscription
+from app.models.webhook import AccessToken
 
 logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -143,7 +143,7 @@ def webhook_subscription(response: dict,) -> bool:
 
 
 async def webhook_validaton(request:Request, webhook_signing_keys:set[str]) -> None:
-    received_signature: str = request.headers.get("x-izettle-signature",default='')
+    received_signature: str = request.headers.get("x-izettle-signature", "")
     raw_body: bytes = await request.body()
     validated:bool = False
     for key in webhook_signing_keys:
@@ -161,8 +161,12 @@ async def webhook_validaton(request:Request, webhook_signing_keys:set[str]) -> N
             status_code=401,
             detail="Invalid webhook signature"
         )
-  
-def set_webhook_sign_key(validated_response:WebhookSubscription, signing_key:set[str]) -> set[str]:
-    if validated_response.uuid not in signing_key:
-        signing_key.add(validated_response.uuid)
-    return signing_key
+
+
+def configured_webhook_signing_keys() -> set[str]:
+    return {
+        signing_key
+        for shop in SHOPS
+        if (signing_key := os.environ.get(f"{shop.upper()}_WEBHOOK_SIGNING_KEY"))
+    }
+

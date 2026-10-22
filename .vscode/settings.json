@@ -10,5 +10,14 @@
         "sreadsheet",
         "validaton",
         "zettle"
-    ]
+    ],
+    "workbench.colorTheme": "Dark Modern",
+    "workbench.colorCustomizations": {
+        "editor.background": "#141414",
+        "sideBar.background": "#171717",
+        "panel.background": "#171717",
+        "titleBar.activeBackground": "#171717"
+    },
+    "editor.inlineSuggest.enabled": true,
+    "github.copilot.editor.enableAutoCompletions": true
 }

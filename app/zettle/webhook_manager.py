@@ -1,12 +1,10 @@
 from typing import Any
 from abc import abstractmethod, ABC
-import requests
 
 import logging
 from dataclasses import dataclass, field
 import httpx
 from fastapi import Request
-import rich
 
 from app.constants import SHOPS
 from app.models.webhook import WebhookCheck
@@ -62,15 +60,10 @@ class WebhookSubscriptionClient(WebhookManager):
             },
             timeout=15,
         )
-        try:
-            response.raise_for_status()
-        except requests.HTTPError as e:
-            rich.print(e)
-        logger.info(
-            msg=f"created subscription for shop {self.shop_name} response : {response.json()}"
-        )
-
-        return response.json()
+        response.raise_for_status()
+        subscription: dict[str, Any] = response.json()
+        logger.info("Created webhook subscription for shop %s", self.shop_name)
+        return subscription
 
     def check_subscription(self) -> None | WebhookCheck:
         access_token: str = self.creds_manager.get_access_key()
@@ -84,7 +77,7 @@ class WebhookSubscriptionClient(WebhookManager):
         result.raise_for_status()
         converted: list[dict[str, str]] | None = result.json()
         logger.info(
-            msg=f"subscriptions for {self.shop_name} count:{len(result.json())} data: {result.json()}"
+            "Subscriptions for %s: %d", self.shop_name, len(converted or [])
         )
         if not converted:
             return None
