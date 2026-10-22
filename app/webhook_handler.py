@@ -1,6 +1,6 @@
 import logging
 
-from sqlmodel import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.schemes import InventoryBalanceUpdateRepository
 from app.services import InventoryBalanceUpdater
 from app.models.inventory import InventoryBalanceUpdateValidator
@@ -12,7 +12,7 @@ class SubscriptionHandler:
     async def process_subscription(
         self,
         inventory_update: InventoryBalanceUpdateValidator,
-        session: Session,
+        session: AsyncSession,
     ) :
 
         logger.info(
@@ -30,4 +30,4 @@ class SubscriptionHandler:
             inventory_update_repository=inventory_update_repository,
         )
 
-        return inventory_balance_updater.store_inventory_update()
+        return await inventory_balance_updater.store_inventory_update()

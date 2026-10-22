@@ -6,6 +6,7 @@ import hmac
 import hashlib
 from uuid import UUID
 from dataclasses import dataclass, field
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import Engine
 from sqlmodel import Field, SQLModel, create_engine, Session,select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
@@ -148,7 +149,7 @@ def webhook_subscription(response: dict,) -> bool:
     return False
 
 
-async def webhook_validaton(request:Request, webhook_signing_keys:set[str] | None) -> None:
+async def webhook_validaton(request:Request, webhook_signing_keys:Sequence[ZettleSigningKey] | None) -> None:
     if not webhook_signing_keys:
         raise HTTPException(
             status_code=401,
@@ -157,9 +158,9 @@ async def webhook_validaton(request:Request, webhook_signing_keys:set[str] | Non
     received_signature: str = request.headers.get("x-izettle-signature", "")
     raw_body: bytes = await request.body()
     validated:bool = False
-    for key in webhook_signing_keys:
+    for Key_data in webhook_signing_keys:
         expected_signature: str = hmac.new(
-            key=key.encode("utf-8"),
+            key=Key_data.signing_key.encode("utf-8"),
             msg=raw_body,
             digestmod=hashlib.sha256
         ).hexdigest()
@@ -172,10 +173,11 @@ async def webhook_validaton(request:Request, webhook_signing_keys:set[str] | Non
             status_code=401,
             detail="Invalid webhook signature"
         )
-async def load_webhook_signing_keys(session: AsyncSession) -> set[str]:
+async def load_webhook_signing_keys(session: AsyncSession) -> Sequence[ZettleSigningKey] | None:
     statement: SelectOfScalar = select(ZettleSigningKey.signing_key)
-    results: Sequence[str] = await session.execute(statement=statement).scalars().all()
-    return set(results)
+    results: Sequence[ZettleSigningKey] = (await session.execute(statement=statement)).scalars().all()
+    return results
+
 class SigningKeyEngine():
     def __init__(self)  -> None:
         self.engine: Engine = create_engine(os.environ["SIGNING_KEYS_DB_URL"])

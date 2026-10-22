@@ -23,7 +23,7 @@ def test_webhook() -> None:
 
 def test_inventory_data_validation():
 
-    with pytest.raises(expected_exception=ValidationError):
+    with pytest.raises(expected_exception=ValidationError): #type: ignore
             client.post(
         url="/inventory_tracker_webhook",
         json=mock_invalid_inventory_data,

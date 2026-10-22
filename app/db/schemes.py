@@ -4,8 +4,10 @@ from typing import Sequence
 import logging
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 from sqlmodel import select
+
 
 from app.db.models import InventoryBalanceUpdateModel,ZettleSigningKey
 
@@ -57,9 +59,9 @@ class InventoryBalanceUpdateRepository:
             InventoryBalanceUpdateModel.after == after,
         )
 
-        results= await self.session.execute(
+        results: Sequence[InventoryBalanceUpdateModel]= (await self.session.execute(
             statement=statement
-        ).scalars().all()
+        )).scalars().all()
         return results
 
 
@@ -67,10 +69,10 @@ class InventoryBalanceUpdateRepository:
 class SigningKeyRepository:
     session: AsyncSession
     
-    async def get_signing_keys(self) -> Sequence[str]:
+    async def get_signing_keys(self)  -> Sequence[str]:
         statement: SelectOfScalar[str] = select(
             ZettleSigningKey.signing_key
         )
-        results: Sequence[str] =await self.session.execute(statement=statement)
+        results: Sequence[str] = (await self.session.execute(statement=statement)).scalars().all()
         
-        items = results.scalars().all()
+        return results

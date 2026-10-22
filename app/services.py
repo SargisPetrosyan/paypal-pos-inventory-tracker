@@ -17,13 +17,13 @@ class InventoryBalanceUpdater:
     inventory_balance_update: InventoryBalanceUpdateValidator
     inventory_update_repository: InventoryBalanceUpdateRepository
 
-    def store_inventory_update(self):
+    async def store_inventory_update(self):
         list_of_updates: list[InventoryBalanceUpdateModel] = []
         for id_, _ in enumerate(self.inventory_balance_update.payload.balance_before):
             payload: Payload = self.inventory_balance_update.payload
             local_timezone: datetime = any_to_utc(date=payload.updated.timestamp)
             product: Sequence[InventoryBalanceUpdateModel] = (
-                self.inventory_update_repository.get_product_data(
+                await self.inventory_update_repository.get_product_data(
                     timestamp=local_timezone,
                     organization_uuid=payload.organization_uuid,
                     product_uuid=payload.balance_before[id_].product_uuid,
@@ -53,6 +53,6 @@ class InventoryBalanceUpdater:
         if not list_of_updates:
             logger.info("inventory updates are duplicates")
             return {"message": "Data already exist in db"},
-        return self.inventory_update_repository.store_updated_inventory_data(
+        return await self.inventory_update_repository.store_updated_inventory_data(
             inventory_update=list_of_updates
         )
