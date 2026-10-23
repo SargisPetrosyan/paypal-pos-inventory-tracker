@@ -10,8 +10,8 @@ from app.utils import (
 from app.models.inventory import InventoryBalanceUpdateValidator
 from app.core.logging import setup_logger
 from app.webhook_handler import SubscriptionHandler
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_db_session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 setup_logger()
 logger: logging.Logger = logging.getLogger(name=__name__)
