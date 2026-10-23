@@ -8,7 +8,7 @@ from uuid import UUID
 from dataclasses import dataclass, field
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import Engine
-from sqlmodel import Field, SQLModel, create_engine, Session,select
+from sqlmodel import SQLModel, create_engine, select
 from sqlmodel.sql._expression_select_cls import SelectOfScalar
 from typing import Sequence
 from app.db.models import ZettleSigningKey
@@ -57,11 +57,9 @@ class PaypalAccessTokenManager:
         if not expires_date:
             return True
         date_object: datetime = datetime.strptime(expires_date, "%Y-%m-%d %H:%M:%S")
-        if date_object > current_date:
-            return True
-        return False
+        return date_object <= current_date
     
-    def get_access_key(self) -> str:
+    async def get_access_key(self) -> str:
         #change it to utc---------------------
         date: datetime = datetime.now()
 
@@ -75,7 +73,13 @@ class PaypalAccessTokenManager:
                 "assertion": os.environ[f"{self.shop_name.upper()}_KEY"],
             }
 
-            response: httpx.Response = httpx.post(url=url, data=data, headers=headers)
+            async with httpx.AsyncClient() as client:
+                response: httpx.Response = await client.post(
+                    url=url,
+                    data=data,
+                    headers=headers,
+                    timeout=15,
+                )
             response.raise_for_status()
 
             formatted_data = response.json()
@@ -149,7 +153,7 @@ def webhook_subscription(response: dict,) -> bool:
     return False
 
 
-async def webhook_validaton(request:Request, webhook_signing_keys:Sequence[ZettleSigningKey] | None) -> None:
+async def webhook_validaton(request:Request, webhook_signing_keys:Sequence[str] | None) -> None:
     if not webhook_signing_keys:
         raise HTTPException(
             status_code=401,
@@ -160,7 +164,7 @@ async def webhook_validaton(request:Request, webhook_signing_keys:Sequence[Zettl
     validated:bool = False
     for Key_data in webhook_signing_keys:
         expected_signature: str = hmac.new(
-            key=Key_data.signing_key.encode("utf-8"),
+            key=Key_data.encode(encoding="utf-8"),
             msg=raw_body,
             digestmod=hashlib.sha256
         ).hexdigest()
@@ -173,9 +177,9 @@ async def webhook_validaton(request:Request, webhook_signing_keys:Sequence[Zettl
             status_code=401,
             detail="Invalid webhook signature"
         )
-async def load_webhook_signing_keys(session: AsyncSession) -> Sequence[ZettleSigningKey] | None:
+async def load_webhook_signing_keys(session: AsyncSession) -> Sequence[str] | None:
     statement: SelectOfScalar = select(ZettleSigningKey.signing_key)
-    results: Sequence[ZettleSigningKey] = (await session.execute(statement=statement)).scalars().all()
+    results: Sequence[str] = (await session.execute(statement=statement)).scalars().all()
     return results
 
 class SigningKeyEngine():

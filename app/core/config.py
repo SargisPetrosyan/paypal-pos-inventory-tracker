@@ -15,18 +15,11 @@ class DatabaseConnection:
         async with self.async_engine.begin() as connection:
             await connection.run_sync(SQLModel.metadata.create_all)
 
-inventory_changes_database: DatabaseConnection = DatabaseConnection(database_url=os.environ["DB_URL"])
-signing_key_database: DatabaseConnection = DatabaseConnection(database_url=os.environ["SIGNING_KEYS_DB_URL"])
-
+db: DatabaseConnection = DatabaseConnection(database_url=os.environ["DB_URL"])
 
 async def create_database_tables() -> None:
-    await inventory_changes_database.create_tables()
-    await signing_key_database.create_tables()
+    await db.create_tables()
 
-async def get_inventory_db_session():
-     async with AsyncSession(inventory_changes_database.async_engine) as session:
-        yield session
-
-async def get_signing_key_db_session():
-    async with AsyncSession(signing_key_database.async_engine) as session:
+async def get_db_session():
+    async with AsyncSession(db.async_engine) as session:
         yield session
